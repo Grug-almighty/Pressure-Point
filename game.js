@@ -223,6 +223,7 @@ const state = {
   shopView: 'shop', // shop | stats
   paused: false,
   treeWave: 0,
+  waveCompleteTimer: 0,
 };
 
 // settings
@@ -624,6 +625,7 @@ function computeWaveTotal(wave){ return 10 + (Math.max(1, wave) - 1) * 5; }
 function startWave(){
   state.phase = 'wave';
   state.waveSpawned = 0;
+  state.waveCompleteTimer = 0;
   state.waveTotal = Math.floor(computeWaveTotal(state.wave) * (state.coop ? 1.5 : 1) * (1 + (state.danger-1)*0.15));
   if(state.wave >= state.maxWave){
     state.waveTotal = 1;
@@ -940,9 +942,14 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       state.waveSpawned++;
     }
     if(state.waveSpawned >= state.waveTotal && enemies.length === 0){ // wave complete
+      state.waveCompleteTimer += dt;
       // if reached max wave, and completed on this danger, unlock next danger
       if(state.wave >= state.maxWave){ if(state.danger < 5 && state.danger <= state.unlockedDanger){ state.unlockedDanger = Math.min(5, state.danger+1); localStorage.setItem(UNLOCK_KEY, state.unlockedDanger); msgEl.style.display='block'; msgEl.textContent = `Unlocked Danger ${state.unlockedDanger}!`; setTimeout(()=>msgEl.style.display='none',3000); } }
       // open stat selector before shop
+      state.phase = 'upgrade';
+      buildUpgradeChoices();
+    }
+    if(state.waveCompleteTimer > 6 && enemies.length === 0){
       state.phase = 'upgrade';
       buildUpgradeChoices();
     }
@@ -1805,6 +1812,7 @@ function resetRun(){
   trees.length = 0;
   fruits.length = 0;
   state.wave = 1;
+  state.waveCompleteTimer = 0;
   state.phase = 'menu';
   state.shopView = 'shop';
   menuEl.style.display = 'block';

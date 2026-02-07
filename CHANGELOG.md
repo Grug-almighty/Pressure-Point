@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.35 ALPHA — 2026-02-07
+- Added wave-complete watchdog to avoid freezes when a wave finishes.
+
 ## v0.34 ALPHA — 2026-02-07
 - Ensured trees spawn each wave with a safety check.
 - Disabled player movement during Shop and Level-Up screens.
