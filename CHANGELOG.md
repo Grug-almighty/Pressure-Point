@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.44 ALPHA — 2026-02-07
+- Added INSTALL.md with install/run steps.
+
 ## v0.43 ALPHA — 2026-02-07
 - Reduced screen shake intensity.
 
