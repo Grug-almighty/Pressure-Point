@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.45 ALPHA — 2026-02-07
+- Added Auto Shoot and Mouse Aim toggles in settings.
+- Polished menu settings layout.
+
 ## v0.44 ALPHA — 2026-02-07
 - Added INSTALL.md with install/run steps.
 

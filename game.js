@@ -10,6 +10,8 @@ const classDescEl = document.getElementById('classDesc');
 const startBtn = document.getElementById('startBtn');
 const coopToggle = document.getElementById('coopToggle');
 const shakeToggle = document.getElementById('shakeToggle');
+const autoShootToggle = document.getElementById('autoShootToggle');
+const mouseAimToggle = document.getElementById('mouseAimToggle');
 const gfxSelect = document.getElementById('gfxSelect');
 const msgEl = document.getElementById('msg');
 const pauseBtn = document.getElementById('pauseBtn');
@@ -235,11 +237,13 @@ const state = {
 
 // settings
 const SETTINGS_KEY = 'brotato_settings_v1';
-const settings = { screenShake: true, graphics: 'high' };
+const settings = { screenShake: true, graphics: 'high', autoShoot: true, mouseAim: true };
 try{
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
   if(typeof savedSettings.screenShake === 'boolean') settings.screenShake = savedSettings.screenShake;
   if(savedSettings.graphics === 'low' || savedSettings.graphics === 'high') settings.graphics = savedSettings.graphics;
+  if(typeof savedSettings.autoShoot === 'boolean') settings.autoShoot = savedSettings.autoShoot;
+  if(typeof savedSettings.mouseAim === 'boolean') settings.mouseAim = savedSettings.mouseAim;
 }catch(e){}
 
 function saveSettings(){
@@ -916,6 +920,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   for(let idx=0; idx<players.length; idx++){
     const p = players[idx]; if(p.dead) continue; let dx=0, dy=0;
     if(idx===0){ if(input.keys['w']||input.keys['arrowup']) dy-=1; if(input.keys['s']||input.keys['arrowdown']) dy+=1; if(input.keys['a']||input.keys['arrowleft']) dx-=1; if(input.keys['d']||input.keys['arrowright']) dx+=1; }
+    if(idx===0 && settings.mouseAim){ p.angle = Math.atan2(input.my - p.y, input.mx - p.x); }
     else { if(input.keys['arrowup']) dy-=1; if(input.keys['arrowdown']) dy+=1; if(input.keys['arrowleft']) dx-=1; if(input.keys['arrowright']) dx+=1; }
     if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
     if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
@@ -1148,8 +1153,23 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     if(ft.life <= 0) floatingTexts.splice(i,1);
   }
 
+  // manual-fire for player 1 when auto-shoot is off
+  if(!settings.autoShoot && state.phase === 'wave' && players[0] && !players[0].dead && input.mouseDown){
+    const p = players[0];
+    const target = {x: input.mx, y: input.my};
+    p.angle = Math.atan2(target.y - p.y, target.x - p.x);
+    fireWeaponFor(p, t, target);
+  }
+
   // auto-fire for players
-  for(const p of players){ if(p.dead) continue; const target = getNearestEnemyTo(p.x,p.y); if(target && state.phase === 'wave'){ p.angle = Math.atan2(target.y - p.y, target.x - p.x); fireWeaponFor(p, t, target); } }
+  for(let i=0;i<players.length;i++){
+    const p = players[i]; if(p.dead) continue;
+    if(i===0 && !settings.autoShoot) continue;
+    const target = getNearestEnemyTo(p.x,p.y); if(target && state.phase === 'wave'){
+      if(i!==0 || !settings.mouseAim){ p.angle = Math.atan2(target.y - p.y, target.x - p.x); }
+      fireWeaponFor(p, t, target);
+    }
+  }
 }
 
 // Drawing helpers reuse earlier drawing but adapt to multi-player
