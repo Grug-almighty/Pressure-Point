@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.36 ALPHA — 2026-02-07
+- Added on-screen Pause button (top-right) alongside the P key.
+
 ## v0.35 ALPHA — 2026-02-07
 - Added wave-complete watchdog to avoid freezes when a wave finishes.
 

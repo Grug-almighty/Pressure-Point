@@ -12,6 +12,7 @@ const coopToggle = document.getElementById('coopToggle');
 const shakeToggle = document.getElementById('shakeToggle');
 const gfxSelect = document.getElementById('gfxSelect');
 const msgEl = document.getElementById('msg');
+const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
 
 let W = 800, H = 600;
@@ -204,6 +205,12 @@ const audio = {
 window.addEventListener('mousedown', ()=>{ audio.init(); audio.startBgm(); }, {once:true});
 const stubSystems = { ready: Promise.resolve(), isStub:true };
 function getSystems(){ return window.SystemsWasm || stubSystems; }
+
+function togglePause(){
+  state.paused = !state.paused;
+  if(pauseBtn) pauseBtn.textContent = state.paused ? 'Resume' : 'Pause';
+  flashMsg(state.paused ? 'Paused — press P to resume' : 'Resumed', 1.2);
+}
 
 // Game State
 const state = {
@@ -785,6 +792,13 @@ function renderClassButtons(){
 }
 renderDangerButtons();
 renderClassButtons();
+if(pauseBtn){
+  pauseBtn.addEventListener('click', ()=>{
+    if(state.phase === 'menu' || state.phase === 'gameover') return;
+    togglePause();
+  });
+}
+
 startBtn.addEventListener('click', ()=>{
   state.coop = coopToggle.checked;
   // create or remove second player
@@ -795,6 +809,7 @@ startBtn.addEventListener('click', ()=>{
   applyClassToPlayer(players[0], chosenClass);
   if(players[1]) applyClassToPlayer(players[1], chosenClass);
   menuEl.style.display = 'none';
+  if(pauseBtn){ pauseBtn.style.display = 'block'; pauseBtn.textContent = 'Pause'; }
   state.phase = 'wave';
   startWave();
 });
@@ -872,8 +887,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   if(state.waveBanner > 0) state.waveBanner = Math.max(0, state.waveBanner - dt);
   if(input.keys['p']){
     input.keys['p'] = false;
-    state.paused = !state.paused;
-    flashMsg(state.paused ? 'Paused — press P to resume' : 'Resumed', 1.2);
+    togglePause();
   }
   if(input.keys['m']){
     input.keys['m'] = false;
@@ -1788,9 +1802,11 @@ function draw(){
   }
   if(state.phase==='gameover'){
     restartBtn.style.display = 'block';
+    if(pauseBtn) pauseBtn.style.display = 'none';
     drawGameOver();
   } else {
     restartBtn.style.display = 'none';
+    if(pauseBtn && state.phase !== 'menu') pauseBtn.style.display = 'block';
   }
 }
 
@@ -1798,7 +1814,7 @@ let last = performance.now()/1000;
 function loop(now){ const t = now/1000; let dt = t - last; if(dt>0.05) dt=0.05; last = t; if(state.phase !== 'menu') update(dt,t); draw(); requestAnimationFrame(loop); }
 
 // init: render menu, prepare shop
-function showMenu(){ menuEl.style.display = 'block'; renderDangerButtons(); renderClassButtons(); }
+function showMenu(){ menuEl.style.display = 'block'; if(pauseBtn) pauseBtn.style.display = 'none'; renderDangerButtons(); renderClassButtons(); }
 showMenu();
 loadWeaponImages();
 loadEnemyImages();
@@ -1821,6 +1837,13 @@ function resetRun(){
   renderClassButtons();
 }
 
-restartBtn.addEventListener('click', ()=>{
+reif(pauseBtn){
+  pauseBtn.addEventListener('click', ()=>{
+    if(state.phase === 'menu' || state.phase === 'gameover') return;
+    togglePause();
+  });
+}
+
+startBtn.addEventListener('click', ()=>{
   resetRun();
 });
