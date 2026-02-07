@@ -71,6 +71,9 @@ function loadEnemyImages(){
   enemyImages.light = img;
 }
 
+const treeImage = new Image();
+treeImage.src = 'Tree.png';
+
 const bgDots = Array.from({length: 140}, () => ({
   x: Math.random(),
   y: Math.random(),
@@ -363,6 +366,8 @@ const bullets = [];
 const enemies = [];
 const moneyDrops = [];
 const particles = [];
+const trees = [];
+const fruits = [];
 
 // Shop
 const shop = { items: [], selection: 0, rerollCost: 6, locked: [] };
@@ -626,6 +631,10 @@ function startWave(){
   state.waveBanner = 2.2;
   buildShop();
   audio.beep(520,0.06,'triangle',0.04);
+  // spawn at least one tree each wave
+  trees.length = 0;
+  const treeCount = Math.max(1, Math.floor(1 + state.wave*0.2));
+  for(let i=0;i<treeCount;i++){ spawnTree(); }
   // respawn dead players at wave start
   for(let i=0;i<players.length;i++){
     const p = players[i];
@@ -641,6 +650,17 @@ function startWave(){
 function openShop(){ state.phase='shop'; state.shopAnim=0; buildShop(); audio.beep(660,0.08,'triangle',0.05); }
 
 function levelUp(player){ player.level += 1; player.xp -= player.xpNext; player.xpNext = Math.floor(player.xpNext * 1.2 + 15); player.baseMaxHp += 6; player.hp = player.baseMaxHp; }
+
+function spawnTree(){
+  const margin = 40;
+  const x = Math.random()*(W-2*margin) + margin;
+  const y = Math.random()*(H-2*margin) + margin;
+  trees.push({x, y, r:18, hp:60, maxHp:60});
+}
+
+function spawnFruit(x, y){
+  fruits.push({x, y, r:8, t:0});
+}
 
 function spawnEnemy(){
   const edge = Math.floor(Math.random()*4);
@@ -1004,6 +1024,29 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
           }
         }
       }
+    }
+  }
+
+  // fruits
+  for(let i=fruits.length-1;i>=0;i--){
+    const f = fruits[i];
+    f.t += dt;
+    const alive = players.filter(p=>!p.dead);
+    if(alive.length == 0) continue;
+    let nearest = alive[0]; let bd = (alive[0].x-f.x)**2 + (alive[0].y-f.y)**2;
+    for(const p of alive){ const d=(p.x-f.x)**2 + (p.y-f.y)**2; if(d<bd){ bd=d; nearest=p; } }
+    const dist = Math.hypot(nearest.x-f.x, nearest.y-f.y);
+    if(dist < 70){
+      const pull = Math.min(1, (70 - dist) / 70);
+      f.x += (nearest.x - f.x) * pull * dt * 10;
+      f.y += (nearest.y - f.y) * pull * dt * 10;
+    }
+    if(dist < nearest.r + f.r){
+      const heal = Math.max(4, Math.floor(nearest.baseMaxHp * 0.08));
+      nearest.hp = Math.min(nearest.baseMaxHp, nearest.hp + heal);
+      particles.push({x:f.x, y:f.y, life:0.3, r:12, color:palette.uiGreen});
+      audio.pickup();
+      fruits.splice(i,1);
     }
   }
 
@@ -1540,6 +1583,30 @@ function drawEffects(){
   ctx.globalAlpha = 1;
   ctx.textAlign = 'start';
 
+  // trees (draw)
+  for(const tr of trees){
+    ctx.save();
+    ctx.translate(tr.x, tr.y);
+    if(treeImage.complete && treeImage.naturalWidth){
+      const scale = (tr.r*2) / treeImage.naturalWidth;
+      const h = treeImage.naturalHeight * scale;
+      ctx.drawImage(treeImage, -tr.r, -h/2, tr.r*2, h);
+    } else {
+      ctx.fillStyle = '#5a7f3a';
+      ctx.beginPath(); ctx.arc(0,0,tr.r,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // fruits (draw)
+  for(const f of fruits){
+    const bob = Math.sin(f.t * 6) * 2;
+    ctx.fillStyle = '#ff6b6b';
+    ctx.beginPath(); ctx.arc(f.x, f.y + bob, f.r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2b1e10';
+    ctx.fillRect(f.x-1, f.y + bob - f.r - 4, 2, 6);
+  }
+
   // bullets
   for(const b of bullets){
     ctx.save();
@@ -1726,6 +1793,8 @@ function resetRun(){
   bullets.length = 0;
   moneyDrops.length = 0;
   particles.length = 0;
+  trees.length = 0;
+  fruits.length = 0;
   state.wave = 1;
   state.phase = 'menu';
   state.shopView = 'shop';

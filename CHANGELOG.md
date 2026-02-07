@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.33 ALPHA — 2026-02-07
+- Added destructible Trees that spawn each wave and drop healing Fruit.
+- Added fruit pickups that heal on contact.
+
 ## v0.32 ALPHA — 2026-02-07
 - Fixed shop lock/reroll glitches and reduced shop card text overlap.
 - Added Harpoon weapon with pierce and a Piercing Bullet item.

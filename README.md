@@ -1,11 +1,10 @@
-# Brotato-lite (Expanded) — v0.33 ALPHA
+# Brotato-lite (Expanded) — v0.34 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.33)
-- Fixed shop lock/reroll glitches and prevented movement during shop phase.
-- Added Harpoon weapon with piercing shots and a Piercing Bullet item.
-- Added main menu settings for screen shake and low graphics mode; reduced shop text overlap.
+## Latest Update (v0.34)
+- Added destructible Trees that spawn each wave and drop healing Fruit.
+- Trees render in-world and drop pickups that heal on contact.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.
