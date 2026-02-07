@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.37 ALPHA — 2026-02-07
+- Minigun now overheats, has 200 ammo, and costs 1000 (red-tier only).
+
 ## v0.36 ALPHA — 2026-02-07
 - Added on-screen Pause button (top-right) alongside the P key.
 

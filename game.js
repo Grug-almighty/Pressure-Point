@@ -302,12 +302,12 @@ const weapons = [
   {id:'flame', name:'Flamethrower', type:'special', rarity:'epic', fireRate:0.05, bulletSpeed:420, spread:0.25, damage:6, mag:80, reload:2.0, recoil:0.7, color:'#ff8c42', elemental:'fire'},
   {id:'rpg', name:'RPG-7', type:'heavy', rarity:'epic', fireRate:1.2, bulletSpeed:460, spread:0.08, damage:60, mag:1, reload:2.6, recoil:2.0, color:'#ff5d5d', explosive:true, elemental:'fire'},
   {id:'arc', name:'Arc Thrower', type:'special', rarity:'epic', fireRate:0.2, bulletSpeed:600, spread:0.15, damage:14, mag:18, reload:1.5, recoil:1.0, color:'#b27bff', elemental:'shock'},
-  {id:'minigun', name:'Minigun', type:'heavy', rarity:'red', fireRate:0.05, bulletSpeed:760, spread:0.12, damage:9, mag:120, reload:2.8, recoil:1.4, color:'#ffb44c'},
+  {id:'minigun', name:'Minigun', type:'heavy', rarity:'red', fireRate:0.05, bulletSpeed:760, spread:0.12, damage:9, mag:200, reload:2.8, recoil:1.4, color:'#ffb44c', overheatMax:100, overheatPerShot:6, overheatCool:18, overheatLock:1.4},
   {id:'rail', name:'Railgun', type:'rifle', rarity:'red', fireRate:0.6, bulletSpeed:1200, spread:0.0, damage:90, mag:2, reload:2.2, recoil:1.8, color:'#ff6b6b'},
   {id:'mine', name:'Mine Layer', type:'special', rarity:'rare', fireRate:0.9, bulletSpeed:300, spread:0.2, damage:24, mag:6, reload:1.9, recoil:1.0, color:'#c9a867', explosive:true, elemental:'fire'},
   {id:'sprayer', name:'Frost Sprayer', type:'special', rarity:'rare', fireRate:0.07, bulletSpeed:520, spread:0.2, damage:8, mag:60, reload:1.7, recoil:0.8, color:'#6cd6ff', elemental:'ice'},
 ];
-const weaponPrices = { pistol:60, harpoon:140, rifle:90, shotgun:110, heavy:140, blade:95, smg:70, dmr:120, flame:150, rpg:160, arc:140, minigun:190, rail:220, mine:110, sprayer:120 };
+const weaponPrices = { pistol:60, harpoon:140, rifle:90, shotgun:110, heavy:140, blade:95, smg:70, dmr:120, flame:150, rpg:160, arc:140, minigun:1000, rail:220, mine:110, sprayer:120 };
 
 const items = [
   {id:'plating', name:'Dense Plating', rarity:'rare', price:55, desc:'+20 Armor, -12% Move Speed', effects:{armor:20, speedMult:-0.12}},
@@ -397,6 +397,13 @@ function createWeaponInstance(base, rarity){
     reload: base.reload * (1 - (mult-1)*0.15),
     spread: base.spread * (1 - (mult-1)*0.2),
     bulletSpeed: base.bulletSpeed * (1 + (mult-1)*0.1),
+    overheatMax: base.overheatMax || 0,
+    overheatPerShot: base.overheatPerShot || 0,
+    overheatCool: base.overheatCool || 0,
+    overheatLock: base.overheatLock || 0,
+    heat: 0,
+    overheated: false,
+    overheatTimer: 0,
   };
 }
 
@@ -703,8 +710,16 @@ function spawnBoss(){
 
 function getNearestEnemyTo(x,y){ let best=null, bd=Infinity; for(const e of enemies){ const d=(e.x-x)**2 + (e.y-y)**2; if(d<bd){ bd=d; best=e; } } return best; }
 
-function fireWeaponFor(player, time, target){ if(!target) return; if(player.reloading>0) return; const w = getWeaponFor(player); const fireRate = w.fireRate * player.reloadSpeed; if(time - (w.last||0) < fireRate) return; if(player.ammoInMag <= 0){ player.reloading = w.reload; audio.beep(240,0.08,'sawtooth',0.04); return; }
+function fireWeaponFor(player, time, target){ if(!target) return; if(player.reloading>0) return; const w = getWeaponFor(player); if(w.overheated) return; const fireRate = w.fireRate * player.reloadSpeed; if(time - (w.last||0) < fireRate) return; if(player.ammoInMag <= 0){ player.reloading = w.reload; audio.beep(240,0.08,'sawtooth',0.04); return; }
   w.last = time; player.ammoInMag -= 1; player.kick = Math.max(player.kick, 0.08 * w.recoil);
+  if(w.overheatMax){
+    w.heat += w.overheatPerShot;
+    if(w.heat >= w.overheatMax){
+      w.overheated = true;
+      w.overheatTimer = w.overheatLock || 1.2;
+      audio.deny();
+    }
+  }
   const angle = Math.atan2(target.y - player.y, target.x - player.x);
   const count = w.pellets || 1;
   for(let i=0;i<count;i++){
@@ -929,6 +944,20 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     p.x = Math.max(0, Math.min(W, p.x)); p.y = Math.max(0, Math.min(H, p.y));
     if(p.reloading > 0){ p.reloading -= dt; if(p.reloading <= 0){ refreshAmmoFor(p); audio.beep(320,0.05,'triangle',0.04); } }
     if(p.kick > 0) p.kick -= dt * 2.5; if(p.hitFlash > 0) p.hitFlash -= dt;
+  }
+
+  // weapons heat/cool
+  for(const p of players){
+    for(const w of p.ownedWeapons){
+      if(!w) continue;
+      if(w.overheated){
+        w.overheatTimer -= dt;
+        if(w.overheatTimer <= 0){ w.overheated = false; }
+      }
+      if(w.overheatMax){
+        w.heat = Math.max(0, w.heat - (w.overheatCool||0) * dt);
+      }
+    }
   }
 
   // phase handling

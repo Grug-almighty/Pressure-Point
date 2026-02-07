@@ -1,9 +1,9 @@
-# Brotato-lite (Expanded) — v0.37 ALPHA
+# Brotato-lite (Expanded) — v0.38 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.37)
-- Added on-screen Pause button (top-right) in addition to the P key.
+## Latest Update (v0.38)
+- Minigun now overheats, has 200 ammo, and costs 1000 (red-tier only).
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.
