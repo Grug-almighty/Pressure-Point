@@ -487,7 +487,7 @@ function rand(min,max){return Math.random()*(max-min)+min}
 
 function addShake(amount){
   if(!settings.screenShake) return;
-  camera.shake = Math.min(18, camera.shake + amount);
+  camera.shake = Math.min(10, camera.shake + amount);
 }
 
 function updateCamera(dt){
@@ -497,7 +497,7 @@ function updateCamera(dt){
   }
   camera.shake = Math.max(0, camera.shake - dt * 16);
   const a = Math.random() * Math.PI * 2;
-  const m = camera.shake * 0.6;
+  const m = camera.shake * 0.4;
   camera.x = Math.cos(a) * m;
   camera.y = Math.sin(a) * m;
 }

@@ -1,9 +1,9 @@
-# Brotato-lite (Expanded) — v0.43 ALPHA
+# Brotato-lite (Expanded) — v0.44 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.43)
-- Reduced enemy money drops for slower economy growth.
+## Latest Update (v0.44)
+- Reduced screen shake intensity.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.

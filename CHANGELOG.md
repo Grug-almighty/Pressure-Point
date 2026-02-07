@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.43 ALPHA — 2026-02-07
+- Reduced screen shake intensity.
+
 ## v0.42 ALPHA — 2026-02-07
 - Reduced money earned from enemies.
 
