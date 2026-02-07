@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.48 ALPHA — 2026-02-07
+- Updated changelog and versioning consistency.
+
 ## v0.45 ALPHA — 2026-02-07
 - Added Auto Shoot and Mouse Aim toggles in settings.
 - Polished menu settings layout.

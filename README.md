@@ -1,10 +1,9 @@
-# Pressure Point (Expanded) — v0.46 ALPHA
+# Brotato-lite (Expanded) — v0.48 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.46)
-- Added settings for Auto Shoot and Mouse Aim.
-- Improved menu settings layout and styling.
+## Latest Update (v0.48)
+- Updated changelog and versioning consistency.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.
