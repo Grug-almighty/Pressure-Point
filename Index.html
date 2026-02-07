@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Brotato-lite</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffb44c'/%3E%3Ccircle cx='32' cy='32' r='18' fill='%230b0b0b'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23f6dfb3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <!-- WASM systems loader (module) -->
+  <script type="module" src="wasm/systems.loader.js"></script>
+</head>
+<body>
+  <div id="ui">
+    <canvas id="game"></canvas>
+
+    <div id="menu" class="overlay">
+      <h1>Brotato‑lite</h1>
+      <div class="row">
+        <div class="label">Danger</div>
+        <div id="dangerList" class="danger-list"></div>
+      </div>
+      <div class="row">
+        <div class="label">Class</div>
+        <div id="classList" class="class-list"></div>
+      </div>
+      <div id="classDesc" class="class-desc">Select a class to see stats and starter weapon.</div>
+      <div class="row">
+        <label><input type="checkbox" id="coopToggle"> Co-op (local)</label>
+      </div>
+      <div class="row">
+        <button id="startBtn">Start Game</button>
+      </div>
+      <div class="hint">Use mouse to select difficulty. Unlock higher dangers by completing Wave 20.</div>
+    </div>
+
+    <div id="msg" class="overlay small" style="display:none"></div>
+    <button id="restartBtn" class="restart-btn" style="display:none">Restart</button>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
