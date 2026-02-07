@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.41 ALPHA — 2026-02-07
+- Max HP upgrades now add flat HP instead of percent scaling.
+- Enemy damage scaling increased for later waves.
+- Money drops clear when upgrade/shop opens.
+
 ## v0.40 ALPHA — 2026-02-07
 - Fixed menu script error blocking class list and Start button.
 

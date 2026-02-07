@@ -354,7 +354,7 @@ const classes = classArchetypes.map(a=>({
 const upgradeStats = [
   {id:'atkspd', name:'Attack Speed', apply:(p, mult)=>{ p.reloadSpeed *= mult; }},
   {id:'baseDmg', name:'Base Damage', apply:(p, mult)=>{ p.damageBonus += Math.floor((mult-1)*10); }},
-  {id:'hp', name:'Max HP', apply:(p, mult)=>{ p.baseMaxHp = Math.floor(p.baseMaxHp * mult); p.hp = p.baseMaxHp; }},
+  {id:'hp', name:'Max HP', apply:(p, mult)=>{ p.baseMaxHp += Math.max(4, Math.round((mult-1)*40)); p.hp = p.baseMaxHp; }},
   {id:'lifesteal', name:'Life Steal', apply:(p, mult)=>{ p.lifesteal = Math.min(0.5, p.lifesteal + (mult-1)*0.05); }},
   {id:'armor', name:'Armor', apply:(p, mult)=>{ p.armor += Math.floor((mult-1)*6); }},
   {id:'engineering', name:'Engineering', apply:(p, mult)=>{ p.damageBonus += Math.floor((mult-1)*4); }},
@@ -665,7 +665,7 @@ function startWave(){
   }
 }
 
-function openShop(){ state.phase='shop'; state.shopAnim=0; buildShop(); audio.beep(660,0.08,'triangle',0.05); }
+function openShop(){ moneyDrops.length = 0; state.phase='shop'; state.shopAnim=0; buildShop(); audio.beep(660,0.08,'triangle',0.05); }
 
 function levelUp(player){ player.level += 1; player.xp -= player.xpNext; player.xpNext = Math.floor(player.xpNext * 1.2 + 15); player.baseMaxHp += 6; player.hp = player.baseMaxHp; }
 
@@ -690,7 +690,8 @@ function spawnEnemy(){
   const dangerHP = 1 + (state.danger-1) * 0.35;
   const dangerDmg = 1 + (state.danger-1) * 0.28;
   const waveScale = 1 + Math.max(0, state.wave-1) * 0.12;
-  enemies.push({ x,y, r: t.r, hp: Math.floor(t.hp * waveScale * dangerHP), maxHp: Math.floor(t.hp * waveScale * dangerHP), speed: t.speed + state.wave*2, dmg: Math.floor(t.dmg * dangerDmg + state.wave), color: t.color, xp: t.xp + Math.floor(state.wave*0.6)*(state.danger), money: t.money + Math.floor(state.wave*0.3)*(state.danger) });
+  const lateDmg = 1 + Math.max(0, state.wave-1) * 0.18;
+  enemies.push({ x,y, r: t.r, hp: Math.floor(t.hp * waveScale * dangerHP), maxHp: Math.floor(t.hp * waveScale * dangerHP), speed: t.speed + state.wave*2, dmg: Math.floor(t.dmg * dangerDmg * lateDmg + state.wave*1.2), color: t.color, xp: t.xp + Math.floor(state.wave*0.6)*(state.danger), money: t.money + Math.floor(state.wave*0.3)*(state.danger) });
   particles.push({x, y, life:0.35, r:18, color: palette.uiAccent});
 }
 
@@ -701,7 +702,7 @@ function spawnBoss(){
   const dangerDmg = 1 + (state.danger-1) * 0.35;
   enemies.push({
     x,y, r: bossType.r, hp: Math.floor(bossType.hp * dangerHP), maxHp: Math.floor(bossType.hp * dangerHP),
-    speed: bossType.speed, dmg: Math.floor(bossType.dmg * dangerDmg),
+    speed: bossType.speed, dmg: Math.floor(bossType.dmg * dangerDmg * (1 + (state.wave-1)*0.12)),
     color: bossType.color, xp: bossType.xp * state.danger, money: bossType.money * state.danger,
     isBoss: true,
   });
@@ -861,6 +862,7 @@ canvas.addEventListener('click', (e)=>{
         audio.click();
         applyUpgradeChoice(upgradeChoices.items[i]);
         // open shop after upgrade
+        moneyDrops.length = 0;
         state.phase = 'shop';
         state.shopAnim = 0;
         buildShop();
@@ -989,6 +991,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       // if reached max wave, and completed on this danger, unlock next danger
       if(state.wave >= state.maxWave){ if(state.danger < 5 && state.danger <= state.unlockedDanger){ state.unlockedDanger = Math.min(5, state.danger+1); localStorage.setItem(UNLOCK_KEY, state.unlockedDanger); msgEl.style.display='block'; msgEl.textContent = `Unlocked Danger ${state.unlockedDanger}!`; setTimeout(()=>msgEl.style.display='none',3000); } }
       // open stat selector before shop
+      moneyDrops.length = 0;
       state.phase = 'upgrade';
       buildUpgradeChoices();
     }
