@@ -1,10 +1,10 @@
-# Brotato-lite (Expanded) — v0.34 ALPHA
+# Brotato-lite (Expanded) — v0.35 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.34)
-- Added destructible Trees that spawn each wave and drop healing Fruit.
-- Trees render in-world and drop pickups that heal on contact.
+## Latest Update (v0.35)
+- Ensured trees spawn every wave and added a safety spawn check.
+- Disabled player movement during Shop and Level-Up screens.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.

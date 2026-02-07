@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.34 ALPHA — 2026-02-07
+- Ensured trees spawn each wave with a safety check.
+- Disabled player movement during Shop and Level-Up screens.
+
 ## v0.33 ALPHA — 2026-02-07
 - Added destructible Trees that spawn each wave and drop healing Fruit.
 - Added fruit pickups that heal on contact.

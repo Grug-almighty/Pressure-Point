@@ -222,6 +222,7 @@ const state = {
   pendingUpgrade: null,
   shopView: 'shop', // shop | stats
   paused: false,
+  treeWave: 0,
 };
 
 // settings
@@ -635,6 +636,7 @@ function startWave(){
   trees.length = 0;
   const treeCount = Math.max(1, Math.floor(1 + state.wave*0.2));
   for(let i=0;i<treeCount;i++){ spawnTree(); }
+  state.treeWave = state.wave;
   // respawn dead players at wave start
   for(let i=0;i<players.length;i++){
     const p = players[i];
@@ -862,6 +864,7 @@ canvas.addEventListener('click', (e)=>{
 
 // Core update loop
 function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover') return;
+  if(menuEl && menuEl.style.display !== 'none') return;
   state.animTime += dt;
   updateCamera(dt);
   if(state.waveBanner > 0) state.waveBanner = Math.max(0, state.waveBanner - dt);
@@ -881,7 +884,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     const p = players[idx]; if(p.dead) continue; let dx=0, dy=0;
     if(idx===0){ if(input.keys['w']||input.keys['arrowup']) dy-=1; if(input.keys['s']||input.keys['arrowdown']) dy+=1; if(input.keys['a']||input.keys['arrowleft']) dx-=1; if(input.keys['d']||input.keys['arrowright']) dx+=1; }
     else { if(input.keys['arrowup']) dy-=1; if(input.keys['arrowdown']) dy+=1; if(input.keys['arrowleft']) dx-=1; if(input.keys['arrowright']) dx+=1; }
-    if(state.phase === 'shop'){ dx = 0; dy = 0; }
+    if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
     if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
     if(p.iFrames > 0) p.iFrames -= dt;
@@ -914,6 +917,12 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
 
   // phase handling
   if(state.phase === 'wave'){
+    if(state.treeWave !== state.wave){
+      trees.length = 0;
+      const treeCount = Math.max(1, Math.floor(1 + state.wave*0.2));
+      for(let i=0;i<treeCount;i++){ spawnTree(); }
+      state.treeWave = state.wave;
+    }
     // spawn logic
     const baseSpawnRate = Math.max(0.45, 1.2 - state.wave*0.04);
     const dangerSpawnMult = 1 + (state.danger-1)*0.2;
