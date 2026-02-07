@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.40 ALPHA — 2026-02-07
+- Fixed menu script error blocking class list and Start button.
+
 ## v0.39 ALPHA — 2026-02-07
 - Fixed Electron app version to valid semver (0.1.0).
 

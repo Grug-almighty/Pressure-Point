@@ -1865,14 +1865,3 @@ function resetRun(){
   renderDangerButtons();
   renderClassButtons();
 }
-
-reif(pauseBtn){
-  pauseBtn.addEventListener('click', ()=>{
-    if(state.phase === 'menu' || state.phase === 'gameover') return;
-    togglePause();
-  });
-}
-
-startBtn.addEventListener('click', ()=>{
-  resetRun();
-});

@@ -1,9 +1,9 @@
-# Brotato-lite (Expanded) — v0.40 ALPHA
+# Brotato-lite (Expanded) — v0.41 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.40)
-- Fixed desktop app semver to allow Electron auto-updater to start.
+## Latest Update (v0.41)
+- Fixed menu script error that blocked class list and Start button.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.
