@@ -1,6 +1,10 @@
-# Brotato-lite (Expanded)
+# Brotato-lite (Expanded) — v0.32 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
+
+## Latest Update (v0.32)
+- WASM loader now auto-falls back to stub when opened via `file://` or `window.DISABLE_WASM`, so you can double-click `Index.html` without running a local server. JS still falls back safely if WASM fails.
+- Inline SVG favicon added to avoid `/favicon.ico` 404s when serving.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.
@@ -47,7 +51,7 @@ Shop:
 - Higher Danger boosts spawn count, HP, damage, XP, money
 
 ## Items, Rarity & Combining
-- Rarity: **Common → Rare → Epic → Red**
+- Rarity: **Common → Rare → Epic → Legendary**
 - Items scale in power by rarity
 - **2 identical items of the same rarity combine** into the next tier
 - **Max 6 items** per player
