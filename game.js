@@ -522,6 +522,15 @@ function applyClassToPlayer(player, classData){
   refreshAmmoFor(player);
 }
 
+function normalizeShopSelection(){
+  if(!shop.items || shop.items.length === 0){ shop.selection = 0; return; }
+  if(shop.items[shop.selection] && shop.items[shop.selection].data) return;
+  for(let i=0;i<shop.items.length;i++){
+    if(shop.items[i] && shop.items[i].data){ shop.selection = i; return; }
+  }
+  shop.selection = 0;
+}
+
 function buildShop(){
   const locked = shop.locked || [];
   const poolWeapons = [...weapons];
@@ -590,6 +599,7 @@ function buildShop(){
   shop.items = picks;
   shop.selection = 0;
   shop.locked = shop.items.map((it, i)=>locked[i] ? it : null);
+  normalizeShopSelection();
 }
 
 function rerollShop(){
@@ -777,7 +787,7 @@ canvas.addEventListener('contextmenu', (e)=>{
       const col = i % cols, row = Math.floor(i/cols);
       const x = def.x + 16 + col * cardW; const y = def.y + 64 + row * (cardH + 12);
       if(mx >= x && mx <= x + cardW-12 && my >= y && my <= y + cardH){
-        shop.locked[i] = shop.locked[i] ? null : shop.items[i];
+        if(shop.items[i]){ shop.locked[i] = shop.locked[i] ? null : shop.items[i]; }
         audio.click();
         return;
       }
@@ -821,6 +831,7 @@ canvas.addEventListener('click', (e)=>{
       if(mx >= x && mx <= x + cardW-12 && my >= y && my <= y + cardH){
         // right click locks, left click buys
         shop.selection = i;
+        normalizeShopSelection();
         audio.click();
         buyShopItemFor(def.player);
         return;
@@ -911,6 +922,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   } else if(state.phase === 'shop'){
     state.shopAnim = Math.min(1, (state.shopAnim||0) + dt*2);
     if(!shop.items || shop.items.length === 0) buildShop();
+    normalizeShopSelection();
     if(input.keys['tab']){ input.keys['tab'] = false; state.shopView = state.shopView === 'shop' ? 'stats' : 'shop'; audio.click(); }
     // keyboard shop navigation
     if(shop.items.length > 0){
@@ -1402,7 +1414,14 @@ function drawShopPanel(def){
     }
 
     const it = shop.items[i];
-    if(!it || !it.data){ ctx.restore(); continue; }
+    if(!it || !it.data){
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.font = '10px "Trebuchet MS", system-ui, sans-serif';
+      ctx.fillText('EMPTY', x+20, y+24);
+      ctx.restore();
+      ctx.restore();
+      continue;
+    }
     const rarity = rarities.find(r=>r.id === (it.rarity || it.data.rarity));
     ctx.fillStyle = (rarity && rarity.color) || palette.uiMid;
     ctx.fillRect(x+10, y+10, 6, 26);
