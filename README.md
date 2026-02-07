@@ -1,4 +1,4 @@
-# Brotato-lite (Expanded) — v0.46 ALPHA
+# Pressure Point (Expanded) — v0.46 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
