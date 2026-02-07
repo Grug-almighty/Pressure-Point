@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.38 ALPHA — 2026-02-07
+- Added Electron desktop scaffolding with auto-updates via GitHub releases.
+
 ## v0.37 ALPHA — 2026-02-07
 - Minigun now overheats, has 200 ammo, and costs 1000 (red-tier only).
 
