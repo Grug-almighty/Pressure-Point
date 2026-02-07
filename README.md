@@ -1,4 +1,4 @@
-# Pressure-Point (Expanded) — v0.33 ALPHA
+# Pressure-Point (Expanded) — v0.34 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
