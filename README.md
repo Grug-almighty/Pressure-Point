@@ -1,10 +1,11 @@
-# Brotato-lite (Expanded) — v0.32 ALPHA
+# Brotato-lite (Expanded) — v0.33 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.32)
-- WASM loader now auto-falls back to stub when opened via `file://` or `window.DISABLE_WASM`, so you can double-click `Index.html` without running a local server. JS still falls back safely if WASM fails.
-- Inline SVG favicon added to avoid `/favicon.ico` 404s when serving.
+## Latest Update (v0.33)
+- Fixed shop lock/reroll glitches and prevented movement during shop phase.
+- Added Harpoon weapon with piercing shots and a Piercing Bullet item.
+- Added main menu settings for screen shake and low graphics mode; reduced shop text overlap.
 
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.

@@ -9,6 +9,8 @@ const classListEl = document.getElementById('classList');
 const classDescEl = document.getElementById('classDesc');
 const startBtn = document.getElementById('startBtn');
 const coopToggle = document.getElementById('coopToggle');
+const shakeToggle = document.getElementById('shakeToggle');
+const gfxSelect = document.getElementById('gfxSelect');
 const msgEl = document.getElementById('msg');
 const restartBtn = document.getElementById('restartBtn');
 
@@ -218,6 +220,28 @@ const state = {
   shopView: 'shop', // shop | stats
   paused: false,
 };
+
+// settings
+const SETTINGS_KEY = 'brotato_settings_v1';
+const settings = { screenShake: true, graphics: 'high' };
+try{
+  const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  if(typeof savedSettings.screenShake === 'boolean') settings.screenShake = savedSettings.screenShake;
+  if(savedSettings.graphics === 'low' || savedSettings.graphics === 'high') settings.graphics = savedSettings.graphics;
+}catch(e){}
+
+function saveSettings(){
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }catch(e){}
+}
+
+if(shakeToggle){
+  shakeToggle.checked = settings.screenShake;
+  shakeToggle.addEventListener('change', ()=>{ settings.screenShake = !!shakeToggle.checked; saveSettings(); });
+}
+if(gfxSelect){
+  gfxSelect.value = settings.graphics;
+  gfxSelect.addEventListener('change', ()=>{ settings.graphics = gfxSelect.value === 'low' ? 'low' : 'high'; saveSettings(); });
+}
 
 // load/unlock persistence
 const UNLOCK_KEY = 'brotato_unlocked_danger_v1';
@@ -441,10 +465,15 @@ function applyUpgradeChoice(choice){
 function rand(min,max){return Math.random()*(max-min)+min}
 
 function addShake(amount){
+  if(!settings.screenShake) return;
   camera.shake = Math.min(18, camera.shake + amount);
 }
 
 function updateCamera(dt){
+  if(!settings.screenShake){
+    camera.shake = 0; camera.x = 0; camera.y = 0;
+    return;
+  }
   camera.shake = Math.max(0, camera.shake - dt * 16);
   const a = Math.random() * Math.PI * 2;
   const m = camera.shake * 0.6;
@@ -663,7 +692,7 @@ function switchWeaponFor(player, dir){
 
 function buyShopItemFor(player){
   const item = shop.items[shop.selection];
-  if(!item) return;
+  if(!item || !item.data) return;
   if(player.currency < item.price){ audio.deny(); return; }
   if(item.type === 'item' && player.items.length >= 6){ audio.deny(); return; }
   player.currency -= item.price;
@@ -881,11 +910,14 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     // wait for click selection in UI
   } else if(state.phase === 'shop'){
     state.shopAnim = Math.min(1, (state.shopAnim||0) + dt*2);
+    if(!shop.items || shop.items.length === 0) buildShop();
     if(input.keys['tab']){ input.keys['tab'] = false; state.shopView = state.shopView === 'shop' ? 'stats' : 'shop'; audio.click(); }
     // keyboard shop navigation
-    if(input.keys['arrowright']){ input.keys['arrowright'] = false; shop.selection = (shop.selection+1)%shop.items.length; audio.click(); }
-    if(input.keys['arrowleft']){ input.keys['arrowleft'] = false; shop.selection = (shop.selection-1+shop.items.length)%shop.items.length; audio.click(); }
-    if(input.keys[' ']){ input.keys[' '] = false; buyShopItemFor(players[0]); }
+    if(shop.items.length > 0){
+      if(input.keys['arrowright']){ input.keys['arrowright'] = false; shop.selection = (shop.selection+1)%shop.items.length; audio.click(); }
+      if(input.keys['arrowleft']){ input.keys['arrowleft'] = false; shop.selection = (shop.selection-1+shop.items.length)%shop.items.length; audio.click(); }
+      if(input.keys[' ']){ input.keys[' '] = false; buyShopItemFor(players[0]); }
+    }
     if(input.keys['enter']){ input.keys['enter'] = false; state.wave = Math.min(state.maxWave, state.wave + 1); startWave(); }
   }
 
@@ -1012,6 +1044,15 @@ function drawBackground(){
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,W,H);
 
+  if(settings.graphics === 'low'){
+    const vig = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.max(W,H)*0.7);
+    vig.addColorStop(0,'rgba(0,0,0,0)');
+    vig.addColorStop(1,'rgba(0,0,0,0.7)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0,0,W,H);
+    return;
+  }
+
   // ambient grid
   ctx.strokeStyle = 'rgba(255,255,255,0.03)';
   ctx.lineWidth = 1;
@@ -1095,6 +1136,26 @@ function drawItemIcon(id, x, y){
   ctx.restore();
 }
 
+function wrapText(text, x, y, maxWidth, lineHeight, maxLines){
+  const words = String(text || '').split(' ');
+  let line = '';
+  let lines = 0;
+  for(let i=0;i<words.length;i++){
+    const test = line + words[i] + ' ';
+    if(ctx.measureText(test).width > maxWidth && line){
+      ctx.fillText(line.trim(), x, y + lines * lineHeight);
+      lines++;
+      line = words[i] + ' ';
+      if(maxLines && lines >= maxLines) return;
+    } else {
+      line = test;
+    }
+  }
+  if(!maxLines || lines < maxLines){
+    ctx.fillText(line.trim(), x, y + lines * lineHeight);
+  }
+}
+
 function drawPlayers(){
   for(let i=0;i<players.length;i++){
     const p = players[i];
@@ -1143,6 +1204,7 @@ function drawPlayers(){
     }
     ctx.restore();
 
+    ctx.restore();
     ctx.restore();
   }
 }
@@ -1240,7 +1302,7 @@ function drawUpgradeSelector(){
   ctx.fillText('LEVEL UP — CHOOSE ONE', px+18, py+30);
 
   const cardW = (panelW - 40) / 4;
-  const cardH = 120;
+  const cardH = 132;
   for(let i=0;i<upgradeChoices.items.length;i++){
     const choice = upgradeChoices.items[i];
     const x = px + 16 + i * cardW; const y = py + 60;
@@ -1312,7 +1374,7 @@ function drawShopPanel(def){
 
   const cols = 3;
   const cardW = (panelW - 44) / cols;
-  const cardH = 120;
+  const cardH = 132;
 
   let hover = -1;
   for(let i=0;i<shop.items.length;i++){
@@ -1332,12 +1394,15 @@ function drawShopPanel(def){
     ctx.scale(pulse, pulse);
     ctx.translate(-cx, -cy);
     panel(x, y, cardW-12, cardH, isSelected ? palette.uiMid : palette.uiLight, palette.outline, 12);
+    ctx.save();
+    roundRect(x, y, cardW-12, cardH, 10); ctx.clip();
     if(isHover){
       ctx.strokeStyle = palette.uiAccent; ctx.lineWidth = 3;
       roundRect(x, y, cardW-12, cardH, 10); ctx.stroke();
     }
 
     const it = shop.items[i];
+    if(!it || !it.data){ ctx.restore(); continue; }
     const rarity = rarities.find(r=>r.id === (it.rarity || it.data.rarity));
     ctx.fillStyle = (rarity && rarity.color) || palette.uiMid;
     ctx.fillRect(x+10, y+10, 6, 26);
@@ -1349,36 +1414,36 @@ function drawShopPanel(def){
     if(it.type === 'weapon'){
       drawWeaponIcon(it.data, x+20, y+30);
       ctx.fillStyle = palette.text;
-      ctx.font = '10px "Trebuchet MS", system-ui, sans-serif';
+      ctx.font = '9px "Trebuchet MS", system-ui, sans-serif';
       const wInst = createWeaponInstance(it.data, it.rarity || it.data.rarity);
-      ctx.fillText(`DMG ${wInst.damage}`, x+20, y+52);
-      ctx.fillText(`ROF ${wInst.fireRate.toFixed(2)}`, x+78, y+52);
-      ctx.fillText(`RLD ${wInst.reload.toFixed(1)}s`, x+20, y+66);
-      ctx.fillText(`MAG ${wInst.mag}`, x+20, y+80);
+      ctx.fillText(`DMG ${wInst.damage}`, x+20, y+56);
+      ctx.fillText(`ROF ${wInst.fireRate.toFixed(2)}`, x+78, y+56);
+      ctx.fillText(`RLD ${wInst.reload.toFixed(1)}s`, x+20, y+70);
+      ctx.fillText(`MAG ${wInst.mag}`, x+20, y+84);
     } else {
       drawItemIcon(it.data.id, x+20, y+52);
       ctx.fillStyle = palette.text;
-      ctx.font = '10px "Trebuchet MS", system-ui, sans-serif';
-      ctx.fillText(it.data.desc, x+42, y+62);
+      ctx.font = '9px "Trebuchet MS", system-ui, sans-serif';
+      wrapText(it.data.desc, x+42, y+62, cardW-60, 11, 2);
     }
 
     // price badge (green if affordable, gray if not)
     const canAfford = p.currency >= it.price;
-    panel(x+16, y+92, 70, 22, canAfford ? palette.uiGreen : palette.uiMid, palette.outline, 10, {shadow:false});
+    panel(x+16, y+100, 70, 22, canAfford ? palette.uiGreen : palette.uiMid, palette.outline, 10, {shadow:false});
     if(canAfford){
       ctx.save();
       ctx.shadowColor = 'rgba(124,255,107,0.6)';
       ctx.shadowBlur = 10;
       ctx.strokeStyle = 'rgba(124,255,107,0.6)';
-      roundRect(x+16, y+92, 70, 22, 10); ctx.stroke();
+      roundRect(x+16, y+100, 70, 22, 10); ctx.stroke();
       ctx.restore();
     }
     ctx.fillStyle = palette.text;
     ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
-    ctx.fillText(`$${it.price}`, x+28, y+108);
+    ctx.fillText(`$${it.price}`, x+28, y+116);
     if(shop.locked[i]){
       ctx.fillStyle = palette.text;
-      ctx.fillText('LOCK', x+70, y+108);
+      ctx.fillText('LOCK', x+70, y+116);
     }
     ctx.restore();
   }

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.32 ALPHA — 2026-02-07
+- Fixed shop lock/reroll glitches and reduced shop card text overlap.
+- Added Harpoon weapon with pierce and a Piercing Bullet item.
+- Added main menu settings for screen shake toggle and low-graphics mode.
+
 # Changelog
 
 # Changelog
