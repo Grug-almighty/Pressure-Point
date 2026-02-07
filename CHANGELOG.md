@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.42 ALPHA — 2026-02-07
+- Reduced money earned from enemies.
+
 ## v0.41 ALPHA — 2026-02-07
 - Max HP upgrades now add flat HP instead of percent scaling.
 - Enemy damage scaling increased for later waves.
