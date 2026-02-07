@@ -1446,6 +1446,7 @@ function drawShopPanel(def){
       wrapText(it.data.desc, x+42, y+62, cardW-60, 11, 2);
     }
 
+    ctx.restore();
     // price badge (green if affordable, gray if not)
     const canAfford = p.currency >= it.price;
     panel(x+16, y+100, 70, 22, canAfford ? palette.uiGreen : palette.uiMid, palette.outline, 10, {shadow:false});
