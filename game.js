@@ -81,12 +81,18 @@ function loadEnemyImages(){
 const treeImage = new Image();
 treeImage.src = 'Tree.png';
 
-const bgDots = Array.from({length: 140}, () => ({
+const bgDots = Array.from({length: 90}, () => ({
   x: Math.random(),
   y: Math.random(),
   r: Math.random() * 1.8 + 0.4,
   a: Math.random() * 0.18 + 0.05,
 }));
+
+// soft caps to keep performance stable
+const MAX_PARTICLES = 500;
+const MAX_FLOATING_TEXTS = 80;
+const MAX_MONEY_DROPS = 150;
+const MAX_BULLETS = 320;
 
 const floatingTexts = [];
 const camera = {shake:0, x:0, y:0};
@@ -700,6 +706,7 @@ function spawnEnemy(){
   const waveScale = 1 + Math.max(0, state.wave-1) * 0.12;
   const lateDmg = 1 + Math.max(0, state.wave-1) * 0.18;
   enemies.push({ x,y, r: t.r, hp: Math.floor(t.hp * waveScale * dangerHP), maxHp: Math.floor(t.hp * waveScale * dangerHP), speed: t.speed + state.wave*2, dmg: Math.floor(t.dmg * dangerDmg * lateDmg + state.wave*1.2), color: t.color, xp: t.xp + Math.floor(state.wave*0.6)*(state.danger), money: Math.max(1, Math.floor(t.money * 0.7) + Math.floor(state.wave*0.2) * state.danger) });
+  if(enemies.length > 120){ enemies.shift(); }
   particles.push({x, y, life:0.35, r:18, color: palette.uiAccent});
 }
 
@@ -1026,7 +1033,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   }
 
   // bullets update
-  for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt; if(b.life<=0 || b.x<-50 || b.x>W+50 || b.y<-50 || b.y>H+50) bullets.splice(i,1); }
+  for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt; if(b.life<=0 || b.x<-50 || b.x>W+50 || b.y<-50 || b.y>H+50 || bullets.length>MAX_BULLETS) bullets.splice(i,1); }
 
   // bullets vs trees (destructibles)
   for(let i=bullets.length-1;i>=0;i--){
@@ -1164,10 +1171,12 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       audio.pickup();
       moneyDrops.splice(i,1);
     }
+    if(moneyDrops.length > MAX_MONEY_DROPS){ moneyDrops.splice(0, moneyDrops.length - MAX_MONEY_DROPS); break; }
   }
 
   // particles
   for(let i=particles.length-1;i>=0;i--){ particles[i].life -= dt; if(particles[i].life <= 0) particles.splice(i,1); }
+  if(particles.length > MAX_PARTICLES){ particles.splice(0, particles.length - MAX_PARTICLES); }
   for(let i=floatingTexts.length-1;i>=0;i--){
     const ft = floatingTexts[i];
     ft.life -= dt;
@@ -1176,6 +1185,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     ft.vy -= dt * 10;
     if(ft.life <= 0) floatingTexts.splice(i,1);
   }
+  if(floatingTexts.length > MAX_FLOATING_TEXTS){ floatingTexts.splice(0, floatingTexts.length - MAX_FLOATING_TEXTS); }
 
   // manual/priority mouse fire: if mouse moved recently, aim at cursor and allow fire regardless of auto-toggle
   const now = t;
