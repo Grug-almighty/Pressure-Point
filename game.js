@@ -13,6 +13,9 @@ const shakeToggle = document.getElementById('shakeToggle');
 const autoShootToggle = document.getElementById('autoShootToggle');
 const mouseAimToggle = document.getElementById('mouseAimToggle');
 const gfxSelect = document.getElementById('gfxSelect');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 const msgEl = document.getElementById('msg');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
@@ -846,6 +849,19 @@ startBtn.addEventListener('click', ()=>{
   state.phase = 'wave';
   startWave();
 });
+
+if(settingsBtn && settingsPanel){
+  settingsBtn.addEventListener('click', ()=>{
+    settingsPanel.style.display = 'block';
+    menuEl.style.display = 'none';
+  });
+}
+if(settingsCloseBtn && settingsPanel){
+  settingsCloseBtn.addEventListener('click', ()=>{
+    settingsPanel.style.display = 'none';
+    menuEl.style.display = 'block';
+  });
+}
 
 // mouse/shop interaction: compute if click on a shop card
 canvas.addEventListener('contextmenu', (e)=>{
@@ -1910,7 +1926,7 @@ let last = performance.now()/1000;
 function loop(now){ const t = now/1000; let dt = t - last; if(dt>0.05) dt=0.05; last = t; if(state.phase !== 'menu') update(dt,t); draw(); requestAnimationFrame(loop); }
 
 // init: render menu, prepare shop
-function showMenu(){ menuEl.style.display = 'block'; if(pauseBtn) pauseBtn.style.display = 'none'; renderDangerButtons(); renderClassButtons(); }
+function showMenu(){ menuEl.style.display = 'block'; if(pauseBtn) pauseBtn.style.display = 'none'; if(settingsPanel) settingsPanel.style.display='none'; renderDangerButtons(); renderClassButtons(); }
 showMenu();
 loadWeaponImages();
 loadEnemyImages();
