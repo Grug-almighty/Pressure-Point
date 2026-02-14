@@ -38,25 +38,29 @@ canvas.addEventListener('mousedown', e=>{ input.mouseDown = true; });
 window.addEventListener('mouseup', e=>{ input.mouseDown = false; });
 
 const palette = {
-  bg1: '#141314',
-  bg2: '#0b0b0c',
-  bg3: '#1f1b18',
-  uiDark: '#2a2118',
-  uiLight: '#f6dfb3',
-  uiMid: '#e2be79',
-  uiAccent: '#ffb44c',
-  uiGreen: '#7cff6b',
-  uiBlue: '#6cd6ff',
-  outline: '#0b0b0b',
-  text: '#2b1e10',
-  textLight: '#f6f0e2',
+  bg1: '#0c141e',
+  bg2: '#05080f',
+  bg3: '#0a1220',
+  uiDark: '#0f1a2a',
+  uiLight: '#1c2c3d',
+  uiMid: '#20354a',
+  uiAccent: '#48e0c2',
+  uiGreen: '#6ef2b1',
+  uiBlue: '#5fb0ff',
+  outline: '#04070d',
+  text: '#e8f1ff',
+  textLight: '#c7dcff',
 };
 
 const weaponImageFiles = {
   pistol: 'CobaltPistol.png',
-  shotgun: 'GravShotgun.png',
+  shotgun: 'Shotgun.png',
   blade: 'ArcBlade.png',
   smg: 'ViperSMG.png',
+  rifle: 'Pulserifle.png',
+  heavy: 'TitanCannon.png',
+  rpg: 'RPG.png',
+  minigun: 'Minigun.png',
 };
 const weaponImages = {};
 function loadWeaponImages(){
@@ -714,6 +718,7 @@ function spawnBoss(){
 }
 
 function getNearestEnemyTo(x,y){ let best=null, bd=Infinity; for(const e of enemies){ const d=(e.x-x)**2 + (e.y-y)**2; if(d<bd){ bd=d; best=e; } } return best; }
+function getNearestTreeTo(x,y){ let best=null, bd=Infinity; for(const tr of trees){ const d=(tr.x-x)**2 + (tr.y-y)**2; if(d<bd){ bd=d; best=tr; } } return best; }
 
 function fireWeaponFor(player, time, target){ if(!target) return; if(player.reloading>0) return; const w = getWeaponFor(player); if(w.overheated) return; const fireRate = w.fireRate * player.reloadSpeed; if(time - (w.last||0) < fireRate) return; if(player.ammoInMag <= 0){ player.reloading = w.reload; audio.beep(240,0.08,'sawtooth',0.04); return; }
   w.last = time; player.ammoInMag -= 1; player.kick = Math.max(player.kick, 0.08 * w.recoil);
@@ -1023,6 +1028,25 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   // bullets update
   for(let i=bullets.length-1;i>=0;i--){ const b=bullets[i]; b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt; if(b.life<=0 || b.x<-50 || b.x>W+50 || b.y<-50 || b.y>H+50) bullets.splice(i,1); }
 
+  // bullets vs trees (destructibles)
+  for(let i=bullets.length-1;i>=0;i--){
+    const b = bullets[i];
+    for(let j=trees.length-1;j>=0;j--){
+      const tr = trees[j];
+      const dist = Math.hypot(b.x - tr.x, b.y - tr.y);
+      if(dist < tr.r + 4){
+        tr.hp -= b.damage;
+        if(tr.hp <= 0){
+          spawnFruit(tr.x, tr.y);
+          particles.push({x:tr.x, y:tr.y, life:0.25, r:12, color:palette.uiGreen});
+          trees.splice(j,1);
+        }
+        if(b.pierce > 0){ b.pierce--; } else { bullets.splice(i,1); }
+        break;
+      }
+    }
+  }
+
   // enemies
   for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; // choose nearest player to chase
     let target = players[0]; let bd = (e.x-players[0].x)**2 + (e.y-players[0].y)**2; for(const p of players){ const d=(e.x-p.x)**2 + (e.y-p.y)**2; if(d<bd){ bd=d; target=p; } }
@@ -1094,14 +1118,15 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     }
   }
 
+  const alivePlayers = players.filter(p=>!p.dead);
+
   // fruits
   for(let i=fruits.length-1;i>=0;i--){
     const f = fruits[i];
     f.t += dt;
-    const alive = players.filter(p=>!p.dead);
-    if(alive.length == 0) continue;
-    let nearest = alive[0]; let bd = (alive[0].x-f.x)**2 + (alive[0].y-f.y)**2;
-    for(const p of alive){ const d=(p.x-f.x)**2 + (p.y-f.y)**2; if(d<bd){ bd=d; nearest=p; } }
+    if(alivePlayers.length === 0) continue;
+    let nearest = alivePlayers[0]; let bd = (alivePlayers[0].x-f.x)**2 + (alivePlayers[0].y-f.y)**2;
+    for(const p of alivePlayers){ const d=(p.x-f.x)**2 + (p.y-f.y)**2; if(d<bd){ bd=d; nearest=p; } }
     const dist = Math.hypot(nearest.x-f.x, nearest.y-f.y);
     if(dist < 70){
       const pull = Math.min(1, (70 - dist) / 70);
@@ -1124,10 +1149,9 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     // no despawn: keep money drops on ground
     m.t += dt;
     // nearest player collects
-    const alive = players.filter(p=>!p.dead);
-    if(alive.length === 0) continue;
-    let nearest = alive[0]; let bd = (alive[0].x-m.x)**2 + (alive[0].y-m.y)**2;
-    for(const p of alive){ const d=(p.x-m.x)**2 + (p.y-m.y)**2; if(d<bd){ bd=d; nearest=p; } }
+    if(alivePlayers.length === 0) continue;
+    let nearest = alivePlayers[0]; let bd = (alivePlayers[0].x-m.x)**2 + (alivePlayers[0].y-m.y)**2;
+    for(const p of alivePlayers){ const d=(p.x-m.x)**2 + (p.y-m.y)**2; if(d<bd){ bd=d; nearest=p; } }
     const dist = Math.hypot(nearest.x-m.x, nearest.y-m.y);
     if(dist < pickupRange){
       const pull = Math.min(1, (pickupRange - dist) / pickupRange);
@@ -1165,7 +1189,8 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   for(let i=0;i<players.length;i++){
     const p = players[i]; if(p.dead) continue;
     if(i===0 && !settings.autoShoot) continue;
-    const target = getNearestEnemyTo(p.x,p.y); if(target && state.phase === 'wave'){
+    const target = getNearestEnemyTo(p.x,p.y) || getNearestTreeTo(p.x,p.y);
+    if(target && state.phase === 'wave'){
       if(i!==0 || !settings.mouseAim){ p.angle = Math.atan2(target.y - p.y, target.x - p.x); }
       fireWeaponFor(p, t, target);
     }
@@ -1559,7 +1584,7 @@ function drawShopPanel(def){
       drawWeaponIcon(it.data, x+20, y+30);
       ctx.fillStyle = palette.text;
       ctx.font = '9px "Trebuchet MS", system-ui, sans-serif';
-      const wInst = createWeaponInstance(it.data, it.rarity || it.data.rarity);
+      const wInst = it.preview || (it.preview = createWeaponInstance(it.data, it.rarity || it.data.rarity));
       ctx.fillText(`DMG ${wInst.damage}`, x+20, y+56);
       ctx.fillText(`ROF ${wInst.fireRate.toFixed(2)}`, x+78, y+56);
       ctx.fillText(`RLD ${wInst.reload.toFixed(1)}s`, x+20, y+70);

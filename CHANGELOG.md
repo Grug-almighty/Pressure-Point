@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.50 ALPHA — 2026-02-14
+- Swapped to a teal/blue neon menu color scheme.
+- Integrated new weapon sprite models for `Minigun`, `Pulse Rifle`, `RPG`, `Shotgun`, and `Titan Cannon`.
+- Fixed auto-targeting so players target trees when no enemies are available.
+- Improved update-loop performance by reusing alive-player lists and caching shop weapon preview stats.
+
 ## v0.48 ALPHA — 2026-02-07
 - Updated changelog and versioning consistency.
 
