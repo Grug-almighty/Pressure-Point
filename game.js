@@ -36,6 +36,7 @@ window.addEventListener('keyup', e=>{ input.keys[e.key.toLowerCase()] = false; }
 canvas.addEventListener('mousemove', e=>{ const r = canvas.getBoundingClientRect(); input.mx = e.clientX - r.left; input.my = e.clientY - r.top; input.lastMove = performance.now()/1000; });
 canvas.addEventListener('mousedown', e=>{ input.mouseDown = true; });
 window.addEventListener('mouseup', e=>{ input.mouseDown = false; });
+if(restartBtn){ restartBtn.addEventListener('click', resetRun); }
 
 const palette = {
   bg1: '#0c141e',
