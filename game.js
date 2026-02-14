@@ -1373,15 +1373,15 @@ function drawPlayers(){
 
 function drawHUD(){
   const p = players[0];
-  ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
+  ctx.font = '14px "Trebuchet MS", system-ui, sans-serif';
   const pulse = 0.6 + 0.4 * Math.sin(state.animTime * 4);
 
   // main HUD panel
-  panel(12, 12, 280, 76, palette.uiLight, palette.outline, 12);
+  panel(12, 12, 300, 84, palette.uiLight, palette.outline, 12);
   ctx.fillStyle = palette.text;
-  ctx.fillText(`Wave ${state.wave}`, 24, 32);
-  ctx.fillText(`HP ${Math.max(0,Math.round(p.hp))}/${p.baseMaxHp}`, 24, 50);
-  ctx.fillText(`Coins ${p.currency}`, 24, 68);
+  ctx.fillText(`Wave ${state.wave}`, 24, 34);
+  ctx.fillText(`HP ${Math.max(0,Math.round(p.hp))}/${p.baseMaxHp}`, 24, 56);
+  ctx.fillText(`Coins ${p.currency}`, 24, 78);
 
   // XP bar
   const barX = 310, barY = 20, barW = 220, barH = 12;
@@ -1426,22 +1426,22 @@ function drawHUD(){
     roundRect(ammoX, ammoY, ammoBarW * (p.ammoInMag / magMax), 6, 3); ctx.fill();
   }
   // dash meter
-  const dashPanelY = H-96;
-  panel(12, dashPanelY, 140, 28, palette.uiLight, palette.outline, 10, {shadow:false});
+  const dashPanelY = H-104;
+  panel(12, dashPanelY, 160, 36, palette.uiLight, palette.outline, 10, {shadow:false});
   ctx.fillStyle = palette.text;
-  ctx.fillText('Dash', 22, dashPanelY + 18);
-  const dashBarX = 70, dashBarW = 70, dashBarH = 8;
+  ctx.fillText('Dash', 22, dashPanelY + 20);
+  const dashBarX = 74, dashBarW = 82, dashBarH = 10;
   ctx.fillStyle = palette.uiMid;
-  roundRect(dashBarX, dashPanelY + 10, dashBarW, dashBarH, 4); ctx.fill();
+  roundRect(dashBarX, dashPanelY + 12, dashBarW, dashBarH, 5); ctx.fill();
   const dashReady = 1 - Math.min(1, Math.max(0, p.dashCooldown) / 2.1);
   const dashGrad = ctx.createLinearGradient(dashBarX, 0, dashBarX + dashBarW, 0);
   dashGrad.addColorStop(0, palette.uiBlue);
   dashGrad.addColorStop(1, palette.uiGreen);
   ctx.fillStyle = dashGrad;
-  roundRect(dashBarX, dashPanelY + 10, dashBarW * dashReady, dashBarH, 4); ctx.fill();
+  roundRect(dashBarX, dashPanelY + 12, dashBarW * dashReady, dashBarH, 5); ctx.fill();
   if(dashReady >= 0.999){
     ctx.fillStyle = palette.uiGreen;
-    ctx.fillText('READY', dashBarX - 4, dashPanelY + 24);
+    ctx.fillText('READY', dashBarX - 2, dashPanelY + 30);
   }
 
   // audio mute indicator
