@@ -30,10 +30,10 @@ window.addEventListener('resize', resize);
 resize();
 
 // Input handling (keyboard + mouse)
-const input = {keys:{}, mx: W/2, my: H/2, mouseDown:false};
+const input = {keys:{}, mx: W/2, my: H/2, mouseDown:false, lastMove:0};
 window.addEventListener('keydown', e=>{ if(e.key === 'Tab') e.preventDefault(); input.keys[e.key.toLowerCase()] = true; });
 window.addEventListener('keyup', e=>{ input.keys[e.key.toLowerCase()] = false; });
-canvas.addEventListener('mousemove', e=>{ const r = canvas.getBoundingClientRect(); input.mx = e.clientX - r.left; input.my = e.clientY - r.top; });
+canvas.addEventListener('mousemove', e=>{ const r = canvas.getBoundingClientRect(); input.mx = e.clientX - r.left; input.my = e.clientY - r.top; input.lastMove = performance.now()/1000; });
 canvas.addEventListener('mousedown', e=>{ input.mouseDown = true; });
 window.addEventListener('mouseup', e=>{ input.mouseDown = false; });
 
@@ -1177,21 +1177,27 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     if(ft.life <= 0) floatingTexts.splice(i,1);
   }
 
-  // manual-fire for player 1 when auto-shoot is off
-  if(!settings.autoShoot && state.phase === 'wave' && players[0] && !players[0].dead && input.mouseDown){
+  // manual/priority mouse fire: if mouse moved recently, aim at cursor and allow fire regardless of auto-toggle
+  const now = t;
+  const mouseRecent = (now - input.lastMove) < 0.35;
+  if(state.phase === 'wave' && players[0] && !players[0].dead && mouseRecent){
     const p = players[0];
     const target = {x: input.mx, y: input.my};
     p.angle = Math.atan2(target.y - p.y, target.x - p.x);
-    fireWeaponFor(p, t, target);
+    if(input.mouseDown || !settings.autoShoot){
+      fireWeaponFor(p, t, target);
+    }
   }
 
-  // auto-fire for players
+  // auto-fire for players (player1 only if mouse idle or auto enabled)
   for(let i=0;i<players.length;i++){
     const p = players[i]; if(p.dead) continue;
-    if(i===0 && !settings.autoShoot) continue;
+    if(i===0 && mouseRecent && !settings.autoShoot) continue;
+    if(i===0 && !settings.autoShoot && !mouseRecent) continue;
+    if(i===0 && mouseRecent) continue;
     const target = getNearestEnemyTo(p.x,p.y) || getNearestTreeTo(p.x,p.y);
     if(target && state.phase === 'wave'){
-      if(i!==0 || !settings.mouseAim){ p.angle = Math.atan2(target.y - p.y, target.x - p.x); }
+      if(i!==0 || !settings.mouseAim || !mouseRecent){ p.angle = Math.atan2(target.y - p.y, target.x - p.x); }
       fireWeaponFor(p, t, target);
     }
   }
