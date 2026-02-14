@@ -1215,28 +1215,30 @@ function drawBackground(){
     return;
   }
 
-  // ambient grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  // ambient grid + parallax blobs
+  ctx.strokeStyle = 'rgba(255,255,255,0.028)';
   ctx.lineWidth = 1;
   const grid = 48;
   const ox = (state.animTime * 8) % grid;
   const oy = (state.animTime * 5) % grid;
   for(let x=-grid; x<W+grid; x+=grid){
-    ctx.beginPath(); ctx.moveTo(x+ox, 0); ctx.lineTo(x+ox, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+ox + Math.sin(state.animTime*0.5)*2, 0); ctx.lineTo(x+ox + Math.sin(state.animTime*0.5)*2, H); ctx.stroke();
   }
   for(let y=-grid; y<H+grid; y+=grid){
-    ctx.beginPath(); ctx.moveTo(0, y+oy); ctx.lineTo(W, y+oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, y+oy + Math.cos(state.animTime*0.35)*2); ctx.lineTo(W, y+oy + Math.cos(state.animTime*0.35)*2); ctx.stroke();
   }
 
-  // soft blobs
-  ctx.fillStyle = 'rgba(255,255,255,0.035)';
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = 'rgba(72,224,194,0.06)';
   for(let i=0;i<10;i++){
     const x = (i*173 + state.animTime*12) % W;
     const y = (i*257 + state.animTime*9) % H;
     ctx.beginPath();
-    ctx.ellipse(x, y, 90, 70, 0, 0, Math.PI*2);
+    ctx.ellipse(x, y, 90 + Math.sin(state.animTime*0.6+i)*6, 70 + Math.cos(state.animTime*0.7+i)*5, 0, 0, Math.PI*2);
     ctx.fill();
   }
+  ctx.restore();
 
   // dust specks
   for(const d of bgDots){
