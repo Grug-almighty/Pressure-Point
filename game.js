@@ -12,10 +12,15 @@ const coopToggle = document.getElementById('coopToggle');
 const shakeToggle = document.getElementById('shakeToggle');
 const autoShootToggle = document.getElementById('autoShootToggle');
 const mouseAimToggle = document.getElementById('mouseAimToggle');
-const gfxSelect = document.getElementById('gfxSelect');
+const gfxPreset = document.getElementById('gfxPreset');
+const gfxSelect = document.getElementById('gfxSelect'); // legacy select (kept for compatibility)
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+const settingsCloseIcon = document.getElementById('settingsCloseIcon');
+const bgEffectsToggle = document.getElementById('bgEffectsToggle');
+const particleEffectsToggle = document.getElementById('particleEffectsToggle');
+const customGfxRow = document.getElementById('customGfxRow');
 const msgEl = document.getElementById('msg');
 const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
@@ -251,26 +256,59 @@ const state = {
 
 // settings
 const SETTINGS_KEY = 'brotato_settings_v1';
-const settings = { screenShake: true, graphics: 'high', autoShoot: true, mouseAim: true };
+const settings = { screenShake: true, graphics: 'high', autoShoot: true, mouseAim: true, bgFx: true, particleFx: true };
 try{
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
   if(typeof savedSettings.screenShake === 'boolean') settings.screenShake = savedSettings.screenShake;
-  if(savedSettings.graphics === 'low' || savedSettings.graphics === 'high') settings.graphics = savedSettings.graphics;
+  if(['low','medium','high','custom'].includes(savedSettings.graphics)) settings.graphics = savedSettings.graphics;
   if(typeof savedSettings.autoShoot === 'boolean') settings.autoShoot = savedSettings.autoShoot;
   if(typeof savedSettings.mouseAim === 'boolean') settings.mouseAim = savedSettings.mouseAim;
+  if(typeof savedSettings.bgFx === 'boolean') settings.bgFx = savedSettings.bgFx;
+  if(typeof savedSettings.particleFx === 'boolean') settings.particleFx = savedSettings.particleFx;
 }catch(e){}
 
 function saveSettings(){
   try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }catch(e){}
 }
 
+function applyPreset(name){
+  settings.graphics = name;
+  if(name === 'high'){ settings.bgFx = true; settings.particleFx = true; }
+  else if(name === 'medium'){ settings.bgFx = true; settings.particleFx = false; }
+  else if(name === 'low'){ settings.bgFx = false; settings.particleFx = false; }
+}
+
 if(shakeToggle){
   shakeToggle.checked = settings.screenShake;
   shakeToggle.addEventListener('change', ()=>{ settings.screenShake = !!shakeToggle.checked; saveSettings(); });
 }
+if(gfxPreset){
+  gfxPreset.value = settings.graphics;
+  if(customGfxRow) customGfxRow.style.display = gfxPreset.value === 'custom' ? 'flex' : 'none';
+  gfxPreset.addEventListener('change', ()=>{
+    const val = gfxPreset.value;
+    if(val === 'custom'){
+      settings.graphics = 'custom';
+      if(customGfxRow) customGfxRow.style.display = 'flex';
+    } else {
+      applyPreset(val);
+      if(customGfxRow) customGfxRow.style.display = 'none';
+    }
+    saveSettings();
+  });
+}
+// fallback: if legacy gfxSelect exists, sync to preset
 if(gfxSelect){
   gfxSelect.value = settings.graphics;
-  gfxSelect.addEventListener('change', ()=>{ settings.graphics = gfxSelect.value === 'low' ? 'low' : 'high'; saveSettings(); });
+  gfxSelect.addEventListener('change', ()=>{ applyPreset(gfxSelect.value === 'low' ? 'low' : 'high'); if(gfxPreset) gfxPreset.value = settings.graphics; saveSettings(); });
+}
+if(bgEffectsToggle){
+  bgEffectsToggle.checked = settings.bgFx;
+  bgEffectsToggle.addEventListener('change', ()=>{ settings.bgFx = !!bgEffectsToggle.checked; settings.graphics = 'custom'; if(gfxPreset) gfxPreset.value='custom'; if(customGfxRow) customGfxRow.style.display='flex'; saveSettings(); });
+}
+if(particleEffectsToggle){
+  particleEffectsToggle.checked = settings.particleFx;
+  particleEffectsToggle.addEventListener('change', ()=>{ settings.particleFx = !!particleEffectsToggle.checked; settings.graphics = 'custom'; if(gfxPreset) gfxPreset.value='custom'; if(customGfxRow) customGfxRow.style.display='flex'; saveSettings(); });
 }
 
 // load/unlock persistence
@@ -395,6 +433,8 @@ const moneyDrops = [];
 const particles = [];
 const trees = [];
 const fruits = [];
+
+function addParticle(p){ if(!settings.particleFx) return; if(particles.length < MAX_PARTICLES) particles.push(p); }
 
 // Shop
 const shop = { items: [], selection: 0, rerollCost: 6, locked: [] };
@@ -711,7 +751,7 @@ function spawnEnemy(){
   const lateDmg = 1 + Math.max(0, state.wave-1) * 0.18;
   enemies.push({ x,y, r: t.r, hp: Math.floor(t.hp * waveScale * dangerHP), maxHp: Math.floor(t.hp * waveScale * dangerHP), speed: t.speed + state.wave*2, dmg: Math.floor(t.dmg * dangerDmg * lateDmg + state.wave*1.2), color: t.color, xp: t.xp + Math.floor(state.wave*0.6)*(state.danger), money: Math.max(1, Math.floor(t.money * 0.7) + Math.floor(state.wave*0.2) * state.danger) });
   if(enemies.length > 120){ enemies.shift(); }
-  particles.push({x, y, life:0.35, r:18, color: palette.uiAccent});
+  addParticle({x, y, life:0.35, r:18, color: palette.uiAccent});
 }
 
 function spawnBoss(){
@@ -856,12 +896,9 @@ if(settingsBtn && settingsPanel){
     menuEl.style.display = 'none';
   });
 }
-if(settingsCloseBtn && settingsPanel){
-  settingsCloseBtn.addEventListener('click', ()=>{
-    settingsPanel.style.display = 'none';
-    menuEl.style.display = 'block';
-  });
-}
+function closeSettings(){ if(settingsPanel) settingsPanel.style.display = 'none'; if(menuEl) menuEl.style.display = 'block'; }
+if(settingsCloseBtn && settingsPanel){ settingsCloseBtn.addEventListener('click', closeSettings); }
+if(settingsCloseIcon && settingsPanel){ settingsCloseIcon.addEventListener('click', closeSettings); }
 
 // mouse/shop interaction: compute if click on a shop card
 canvas.addEventListener('contextmenu', (e)=>{
