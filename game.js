@@ -765,7 +765,7 @@ function spawnBoss(){
     color: bossType.color, xp: bossType.xp * state.danger, money: bossType.money * state.danger,
     isBoss: true,
   });
-  particles.push({x, y, life:0.6, r:28, color: '#ff6b6b'});
+  addParticle({x, y, life:0.6, r:28, color: '#ff6b6b'});
 }
 
 function getNearestEnemyTo(x,y){ let best=null, bd=Infinity; for(const e of enemies){ const d=(e.x-x)**2 + (e.y-y)**2; if(d<bd){ bd=d; best=e; } } return best; }
@@ -795,7 +795,7 @@ function fireWeaponFor(player, time, target){ if(!target) return; if(player.relo
     const elemental = w.elemental || (w.explosive ? 'fire' : null);
     bullets.push({ x: player.x + Math.cos(a)*player.r, y: player.y + Math.sin(a)*player.r, vx: Math.cos(a)*speed, vy: Math.sin(a)*speed, life: 1.6, color: w.color, damage: dmg, ownerId: player.id, crit: isCrit, elemental, pierce: (w.pierce||0) + (player.pierceBonus||0) });
   }
-  particles.push({x:player.x + Math.cos(angle)*16, y:player.y + Math.sin(angle)*16, life:0.15, r: w.type==='heavy'?18:w.type==='shotgun'?14:10, color:w.color});
+  addParticle({x:player.x + Math.cos(angle)*16, y:player.y + Math.sin(angle)*16, life:0.15, r: w.type==='heavy'?18:w.type==='shotgun'?14:10, color:w.color});
   if(audio.ctx && time - (w.lastSound||0) > 0.06){ w.lastSound = time; const freq = w.type==='heavy'?120:w.type==='shotgun'?180:w.type==='rifle'?240:320; audio.beep(freq,0.04,'square',0.03); }
 }
 
@@ -1003,7 +1003,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       audio.dash();
       input.keys['shift'] = false;
       for(let k=0;k<6;k++){
-        particles.push({x:p.x + rand(-6,6), y:p.y + rand(-6,6), life:0.25, r:8 - k*0.6, color: palette.uiBlue});
+      addParticle({x:p.x + rand(-6,6), y:p.y + rand(-6,6), life:0.25, r:8 - k*0.6, color: palette.uiBlue});
       }
     }
     if(p.dashTimer > 0){
@@ -1099,7 +1099,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
         tr.hp -= b.damage;
         if(tr.hp <= 0){
           spawnFruit(tr.x, tr.y);
-          particles.push({x:tr.x, y:tr.y, life:0.25, r:12, color:palette.uiGreen});
+          addParticle({x:tr.x, y:tr.y, life:0.25, r:12, color:palette.uiGreen});
           trees.splice(j,1);
         }
         if(b.pierce > 0){ b.pierce--; } else { bullets.splice(i,1); }
@@ -1116,7 +1116,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     if(e.status.burn > 0){
       e.status.burn -= dt;
       e.hp -= e.status.burnDps * dt;
-      particles.push({x:e.x, y:e.y, life:0.08, r:4, color:'#ff8c42'});
+      addParticle({x:e.x, y:e.y, life:0.08, r:4, color:'#ff8c42'});
     }
     if(e.status.slow > 0){ e.status.slow -= dt; }
 
@@ -1142,14 +1142,14 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
               const chain = enemies.find(en => en !== e && Math.hypot(en.x - e.x, en.y - e.y) < 80);
               if(chain){
                 chain.hp -= b.damage * 0.6;
-                particles.push({x:chain.x,y:chain.y,life:0.2, r:8, color:'#b27bff'});
+                addParticle({x:chain.x,y:chain.y,life:0.2, r:8, color:'#b27bff'});
               }
             }
-            particles.push({x:e.x,y:e.y,life:0.2, r:8, color:'#ffd166'}); const ownerId = b.ownerId;
+            addParticle({x:e.x,y:e.y,life:0.2, r:8, color:'#ffd166'}); const ownerId = b.ownerId;
             if(b.pierce > 0){ b.pierce--; } else { bullets.splice(j,1); } if(e.hp <= 0){ // die
             // reward to owner if available, else nearest player
             awardToPlayerById(ownerId, e.xp, e.money);
-            particles.push({x:e.x,y:e.y,life:0.35,r:16,color:'#ff5d5d'});
+            addParticle({x:e.x,y:e.y,life:0.35,r:16,color:'#ff5d5d'});
             addShake(e.isBoss ? 12 : 3);
             audio.beep(140,0.06,'triangle',0.04);
             // drop money pickups
@@ -1197,7 +1197,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     if(dist < nearest.r + f.r){
       const heal = Math.max(4, Math.floor(nearest.baseMaxHp * 0.08));
       nearest.hp = Math.min(nearest.baseMaxHp, nearest.hp + heal);
-      particles.push({x:f.x, y:f.y, life:0.3, r:12, color:palette.uiGreen});
+      addParticle({x:f.x, y:f.y, life:0.3, r:12, color:palette.uiGreen});
       audio.pickup();
       fruits.splice(i,1);
     }
@@ -1221,7 +1221,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     }
     if(dist < nearest.r + m.r){
       nearest.currency += 1;
-      particles.push({x:m.x, y:m.y, life:0.25, r:10, color:palette.uiGreen});
+      addParticle({x:m.x, y:m.y, life:0.25, r:10, color:palette.uiGreen});
       audio.pickup();
       moneyDrops.splice(i,1);
     }
