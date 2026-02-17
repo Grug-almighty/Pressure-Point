@@ -1,5 +1,63 @@
 # Changelog
 
+## v0.50 ALPHA — 2026-02-14
+- Swapped to a teal/blue neon menu color scheme.
+- Integrated new weapon sprite models for `Minigun`, `Pulse Rifle`, `RPG`, `Shotgun`, and `Titan Cannon`.
+- Fixed auto-targeting so players target trees when no enemies are available.
+- Improved update-loop performance by reusing alive-player lists and caching shop weapon preview stats.
+
+## v0.48 ALPHA — 2026-02-07
+- Updated changelog and versioning consistency.
+
+## v0.45 ALPHA — 2026-02-07
+- Added Auto Shoot and Mouse Aim toggles in settings.
+- Polished menu settings layout.
+
+## v0.44 ALPHA — 2026-02-07
+- Added INSTALL.md with install/run steps.
+
+## v0.43 ALPHA — 2026-02-07
+- Reduced screen shake intensity.
+
+## v0.42 ALPHA — 2026-02-07
+- Reduced money earned from enemies.
+
+## v0.41 ALPHA — 2026-02-07
+- Max HP upgrades now add flat HP instead of percent scaling.
+- Enemy damage scaling increased for later waves.
+- Money drops clear when upgrade/shop opens.
+
+## v0.40 ALPHA — 2026-02-07
+- Fixed menu script error blocking class list and Start button.
+
+## v0.39 ALPHA — 2026-02-07
+- Fixed Electron app version to valid semver (0.1.0).
+
+## v0.38 ALPHA — 2026-02-07
+- Added Electron desktop scaffolding with auto-updates via GitHub releases.
+
+## v0.37 ALPHA — 2026-02-07
+- Minigun now overheats, has 200 ammo, and costs 1000 (red-tier only).
+
+## v0.36 ALPHA — 2026-02-07
+- Added on-screen Pause button (top-right) alongside the P key.
+
+## v0.35 ALPHA — 2026-02-07
+- Added wave-complete watchdog to avoid freezes when a wave finishes.
+
+## v0.34 ALPHA — 2026-02-07
+- Ensured trees spawn each wave with a safety check.
+- Disabled player movement during Shop and Level-Up screens.
+
+## v0.33 ALPHA — 2026-02-07
+- Added destructible Trees that spawn each wave and drop healing Fruit.
+- Added fruit pickups that heal on contact.
+
+## v0.32 ALPHA — 2026-02-07
+- Fixed shop lock/reroll glitches and reduced shop card text overlap.
+- Added Harpoon weapon with pierce and a Piercing Bullet item.
+- Added main menu settings for screen shake toggle and low-graphics mode.
+
 # Changelog
 
 # Changelog

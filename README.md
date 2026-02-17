@@ -1,14 +1,13 @@
-# Pressure-Point (Expanded) — v0.34 ALPHA
-DO NOT USE THIS BRANCH USE MASTER
+# Brotato-lite (Expanded) — v0.50 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.33)
-Added new models to game
-DMR
-Player
-Map
-Harpoon Gun
+## Latest Update (v0.50)
+- Swapped UI to a deep teal/blue neon scheme for menus and settings.
+- Integrated new weapon sprite models (`Shotgun`, `Pulse Rifle`, `RPG`, `Titan Cannon`, `Minigun`).
+- Auto-target now falls back to trees when no enemies are present.
+- Optimized runtime loops by removing repeated alive-player allocations and caching shop weapon previews.
+
 ## What’s Included
 - **Wave system**: Wave 1 → Wave 20 with scaling enemy counts and difficulty.
 - **Boss at Wave 20**: A large Overlord boss spawns on the final wave.
