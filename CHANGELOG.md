@@ -7,6 +7,9 @@
 ## v0.53 ALPHA — 2026-02-14
 - Added optional Debug HUD (FPS + entity counts).
 
+## v0.54 ALPHA — 2026-02-14
+- Added cheap, high-impact animations (walk bob, muzzle flash, tree sway, enemy hit squash).
+
 ## v0.51 ALPHA — 2026-02-14
 - Enlarged player character sprite.
 

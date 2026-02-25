@@ -352,6 +352,10 @@ function createPlayer(x,y){ return {
   items: [], dead: false, pierceBonus:0,
   dashTimer:0, dashCooldown:0, dashDir:0, iFrames:0,
   lastMoveX: 0, lastMoveY: 1,
+  moveN: 0,
+  walkPhase: 0,
+  muzzleT: 0,
+  muzzleA: 0,
   classId: 'ironheart', className: 'Ironheart',
 }; }
 const players = [ createPlayer(W/2, H/2) ];
@@ -800,6 +804,8 @@ function getNearestTreeTo(x,y){ let best=null, bd=Infinity; for(const tr of tree
 
 function fireWeaponFor(player, time, target){ if(!target) return; if(player.reloading>0) return; const w = getWeaponFor(player); if(w.overheated) return; const fireRate = w.fireRate * player.reloadSpeed; if(time - (w.last||0) < fireRate) return; if(player.ammoInMag <= 0){ player.reloading = w.reload; audio.beep(240,0.08,'sawtooth',0.04); return; }
   w.last = time; player.ammoInMag -= 1; player.kick = Math.max(player.kick, 0.08 * w.recoil);
+  player.muzzleT = 0.06;
+  player.muzzleA = player.angle;
   if(w.overheatMax){
     w.heat += w.overheatPerShot;
     if(w.heat >= w.overheatMax){
@@ -1030,6 +1036,9 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       dx/=len; dy/=len;
       p.lastMoveX = dx; p.lastMoveY = dy;
     }
+    p.moveN = Math.hypot(dx,dy);
+    p.walkPhase += dt * (p.moveN > 0 ? 10 : 2);
+    if(p.muzzleT > 0) p.muzzleT -= dt;
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
     if(p.iFrames > 0) p.iFrames -= dt;
     const dashInput = input.keys['shift'] && state.phase === 'wave';
@@ -1150,6 +1159,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
 
   // enemies
   for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; // choose nearest player to chase
+    if(e.hitT > 0) e.hitT -= dt;
     let target = players[0]; let bd = (e.x-players[0].x)**2 + (e.y-players[0].y)**2; for(const p of players){ const d=(e.x-p.x)**2 + (e.y-p.y)**2; if(d<bd){ bd=d; target=p; } }
     // apply status effects
     if(!e.status) e.status = {burn:0,burnDps:0,slow:0,shock:0};
@@ -1169,7 +1179,10 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     for(let j=bullets.length-1;j>=0;j--){ const b = bullets[j]; const dist = Math.hypot(b.x - e.x, b.y - e.y); if(dist < e.r + 3){
             e.hp -= b.damage;
             const dealt = Math.max(1, Math.round(Math.min(b.damage, b.damage + e.hp)));
-            floatingTexts.push({x:e.x, y:e.y-6, vx:rand(-12,12), vy:-40, life:0.8, text: dealt, color: b.crit ? '#ffd166' : palette.textLight});
+            if(floatingTexts.length < MAX_FLOATING_TEXTS){
+              floatingTexts.push({x:e.x, y:e.y-6, vx:rand(-12,12), vy:-40, life:0.8, text: dealt, color: b.crit ? '#ffd166' : palette.textLight});
+            }
+            e.hitT = 0.08;
             addShake(b.crit ? 4 : 1.5);
             // elemental status
             if(b.elemental === 'fire'){
@@ -1436,7 +1449,7 @@ function drawPlayers(){
     if(p.dead) continue;
     const body = i===0 ? '#e6c07b' : '#ffd16a';
     ctx.save();
-    const bob = Math.sin(state.animTime * 6 + i) * 1.6;
+    const bob = Math.sin(p.walkPhase + i) * (1.2 + 1.4*p.moveN);
     ctx.translate(p.x, p.y + bob);
     // Do not rotate the sprite. Use movement direction to choose the frame.
 
@@ -1496,6 +1509,19 @@ function drawPlayers(){
       ctx.strokeStyle = palette.outline; ctx.lineWidth = 2; ctx.stroke();
     }
     ctx.restore();
+
+    // muzzle flash (cheap)
+    if(p.muzzleT > 0){
+      ctx.save();
+      ctx.rotate(p.muzzleA);
+      ctx.globalCompositeOperation = 'screen';
+      const mt = p.muzzleT / 0.06;
+      ctx.fillStyle = `rgba(255,220,140,${0.6*mt})`;
+      ctx.beginPath();
+      ctx.ellipse(34, 0, 10*mt, 5*mt, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
 
     ctx.restore();
     ctx.restore();
@@ -1825,6 +1851,8 @@ function drawEffects(){
   for(const tr of trees){
     ctx.save();
     ctx.translate(tr.x, tr.y);
+    const sway = Math.sin(state.animTime * 1.3 + tr.x*0.01) * 0.05;
+    ctx.rotate(sway);
     if(treeImage.complete && treeImage.naturalWidth){
       const scale = (tr.r*2) / treeImage.naturalWidth;
       const h = treeImage.naturalHeight * scale;
@@ -1858,9 +1886,11 @@ function drawEffects(){
   // enemies
   for(const e of enemies){
     const wob = 1 + Math.sin(state.animTime * 5 + e.x * 0.02 + e.y * 0.01) * 0.03;
+    const hit = (e.hitT > 0) ? (1 + (e.hitT / 0.08) * 0.10) : 1;
     ctx.save();
     ctx.translate(e.x, e.y);
     ctx.scale(wob, wob);
+    if(hit !== 1) ctx.scale(1/hit, hit);
     const lightImg = enemyImages.light;
     if(e.id === 'runner' && lightImg && lightImg.complete && lightImg.naturalWidth){
       const scale = (e.r*2) / lightImg.naturalWidth;
