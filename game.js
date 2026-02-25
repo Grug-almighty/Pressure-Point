@@ -72,11 +72,23 @@ const weaponImageFiles = {
   minigun: 'Minigun.png',
 };
 const weaponImages = {};
+const playerImages = {
+  up: 'PlayerUp.png',
+  down: 'PlayerDown.png',
+  side: 'PlayerSide.png',
+};
 function loadWeaponImages(){
   for(const [id, file] of Object.entries(weaponImageFiles)){
     const img = new Image();
     img.src = file;
     weaponImages[id] = img;
+  }
+}
+function loadPlayerImages(){
+  for(const [id, file] of Object.entries(playerImages)){
+    const img = new Image();
+    img.src = file;
+    playerImages[id] = img;
   }
 }
 
@@ -1409,18 +1421,25 @@ function drawPlayers(){
     ctx.fill();
     ctx.restore();
 
-    // outline
-    ctx.fillStyle = palette.outline;
-    ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
-    // body
-    ctx.fillStyle = body;
-    ctx.beginPath(); ctx.ellipse(0,0,16,12,0,0,Math.PI*2); ctx.fill();
-    // face
-    ctx.fillStyle = '#2b1e10';
-    ctx.beginPath(); ctx.arc(4,-3,2,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(9,-3,2,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
+    // player sprite based on aim angle
+    const facing = Math.abs(Math.sin(p.angle)) > 0.5 ? 'side' : (Math.cos(p.angle) > 0 ? 'up' : 'down');
+    const img = playerImages[facing];
+    if(img && img.complete && img.naturalWidth){
+      const scale = 34 / img.naturalWidth;
+      const h = img.naturalHeight * scale;
+      ctx.drawImage(img, -16, -h/2, 34, h);
+    } else {
+      // fallback vector body
+      ctx.fillStyle = palette.outline;
+      ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = body;
+      ctx.beginPath(); ctx.ellipse(0,0,16,12,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#2b1e10';
+      ctx.beginPath(); ctx.arc(4,-3,2,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(9,-3,2,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
+    }
 
     // weapon
     const w = getWeaponFor(p);
@@ -1967,6 +1986,7 @@ function showMenu(){ menuEl.style.display = 'block'; if(pauseBtn) pauseBtn.style
 showMenu();
 loadWeaponImages();
 loadEnemyImages();
+loadPlayerImages();
 requestAnimationFrame(loop);
 
 function resetRun(){
