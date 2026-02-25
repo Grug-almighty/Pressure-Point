@@ -254,6 +254,11 @@ function togglePause(){
   flashMsg(state.paused ? 'Paused — press P to resume' : 'Resumed', 1.2);
 }
 
+function setPaused(flag){
+  state.paused = !!flag;
+  if(pauseBtn) pauseBtn.textContent = state.paused ? 'Resume' : 'Pause';
+}
+
 // Game State
 const state = {
   phase: 'menu', // menu | wave | shop | gameover
@@ -954,6 +959,27 @@ canvas.addEventListener('contextmenu', (e)=>{
 });
 
 canvas.addEventListener('click', (e)=>{
+  if(state.paused && state.phase !== 'menu' && state.phase !== 'gameover'){
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const pw = Math.min(620, W*0.9);
+    const ph = Math.min(420, H*0.8);
+    const px = (W - pw)/2;
+    const py = (H - ph)/2;
+    // Resume button
+    if(mx >= px+18 && mx <= px+18+140 && my >= py+ph-54 && my <= py+ph-54+36){
+      setPaused(false);
+      audio.click();
+      return;
+    }
+    // Quit to menu button
+    if(mx >= px+pw-18-160 && mx <= px+pw-18 && my >= py+ph-54 && my <= py+ph-54+36){
+      resetRun();
+      audio.click();
+      return;
+    }
+    return;
+  }
   if(state.phase === 'upgrade'){
     const r = canvas.getBoundingClientRect(); const mx = e.clientX - r.left, my = e.clientY - r.top;
     const panelW = Math.min(620, W*0.85); const panelH = 220; const px = (W - panelW)/2; const py = (H - panelH)/2;
@@ -2028,16 +2054,57 @@ function draw(){
   drawUpgradeSelector();
   drawShop();
   if(state.paused){
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
     ctx.fillRect(0,0,W,H);
-    panel(W/2-120, H/2-40, 240, 80, palette.uiLight, palette.outline, 14);
+
+    const p = players[0];
+    const pw = Math.min(620, W*0.9);
+    const ph = Math.min(420, H*0.8);
+    const px = (W - pw)/2;
+    const py = (H - ph)/2;
+    panel(px, py, pw, ph, palette.uiLight, palette.outline, 16);
+
     ctx.fillStyle = palette.text;
-    ctx.font = 'bold 18px "Trebuchet MS", system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('PAUSED', W/2, H/2);
+    ctx.font = 'bold 22px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText('PAUSED', px+22, py+40);
     ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
-    ctx.fillText('Press P to resume', W/2, H/2 + 18);
-    ctx.textAlign = 'start';
+    ctx.fillText('Press P to resume', px+24, py+60);
+
+    // Stats block
+    ctx.font = 'bold 14px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText('STATS', px+22, py+92);
+    ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
+    const lines = [
+      `Class: ${p.className}`,
+      `Wave: ${state.wave}  Danger: ${state.danger}`,
+      `HP: ${Math.round(p.hp)} / ${p.baseMaxHp}`,
+      `Coins: ${p.currency}  Level: ${p.level}`,
+      `Armor: ${p.armor}  Life Steal: ${(p.lifesteal*100).toFixed(1)}%`,
+      `Damage Bonus: +${p.damageBonus}  Crit: ${(p.critChance*100).toFixed(1)}%`,
+      `Reload Speed: ${p.reloadSpeed.toFixed(2)}  Accuracy: ${p.accuracy.toFixed(2)}`,
+    ];
+    for(let i=0;i<lines.length;i++) ctx.fillText(lines[i], px+22, py+116 + i*18);
+
+    // Weapons list
+    ctx.font = 'bold 14px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText('WEAPONS', px+22, py+266);
+    ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
+    let wy = py+290;
+    for(const w of p.ownedWeapons){
+      if(!w) continue;
+      ctx.fillText(`${w.name} (${w.rarity})`, px+22, wy);
+      wy += 16;
+      if(wy > py+ph-82) break;
+    }
+
+    // Buttons
+    panel(px+18, py+ph-54, 140, 36, palette.uiGreen, palette.outline, 12, {shadow:false});
+    ctx.fillStyle = palette.text;
+    ctx.font = 'bold 14px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText('RESUME', px+46, py+ph-30);
+    panel(px+pw-18-160, py+ph-54, 160, 36, palette.uiMid, palette.outline, 12, {shadow:false});
+    ctx.fillStyle = palette.text;
+    ctx.fillText('QUIT TO MENU', px+pw-18-148, py+ph-30);
   }
   const anchor = players[0];
   if(anchor && anchor.hp > 0 && anchor.hp / anchor.baseMaxHp < 0.35 && state.phase === 'wave'){

@@ -10,6 +10,9 @@
 ## v0.54 ALPHA — 2026-02-14
 - Added cheap, high-impact animations (walk bob, muzzle flash, tree sway, enemy hit squash).
 
+## v0.55 ALPHA — 2026-02-14
+- Added a proper pause menu with stats and buttons.
+
 ## v0.51 ALPHA — 2026-02-14
 - Enlarged player character sprite.
 
