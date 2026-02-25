@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.52 ALPHA — 2026-02-14
+- Enlarged player character sprite again.
+- Enlarged trees (bigger hitbox + more HP).
+
 ## v0.51 ALPHA — 2026-02-14
 - Enlarged player character sprite.
 

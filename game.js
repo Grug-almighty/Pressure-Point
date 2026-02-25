@@ -744,7 +744,7 @@ function spawnTree(){
   const margin = 40;
   const x = Math.random()*(W-2*margin) + margin;
   const y = Math.random()*(H-2*margin) + margin;
-  trees.push({x, y, r:18, hp:60, maxHp:60});
+  trees.push({x, y, r:26, hp:90, maxHp:90});
 }
 
 function spawnFruit(x, y){
@@ -1432,29 +1432,29 @@ function drawPlayers(){
     }
     const playerImg = playerImages[facing];
     if(playerImg && playerImg.complete && playerImg.naturalWidth){
-      const spriteW = 44;
+      const spriteW = 52;
       const scale = spriteW / playerImg.naturalWidth;
       const h = playerImg.naturalHeight * scale;
       // Mirror side sprite when moving left.
       if(facing === 'side' && p.lastMoveX < 0){
         ctx.save();
         ctx.scale(-1, 1);
-        ctx.drawImage(playerImg, -22, -h/2, spriteW, h);
+        ctx.drawImage(playerImg, -26, -h/2, spriteW, h);
         ctx.restore();
       } else {
-        ctx.drawImage(playerImg, -20, -h/2, spriteW, h);
+        ctx.drawImage(playerImg, -24, -h/2, spriteW, h);
       }
     } else {
       // fallback vector body
       ctx.fillStyle = palette.outline;
-      ctx.beginPath(); ctx.ellipse(0,0,22,17,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0,0,26,20,0,0,Math.PI*2); ctx.fill();
       ctx.fillStyle = body;
-      ctx.beginPath(); ctx.ellipse(0,0,20,15,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0,0,24,18,0,0,Math.PI*2); ctx.fill();
       ctx.fillStyle = '#2b1e10';
-      ctx.beginPath(); ctx.arc(5,-4,2.5,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(11,-4,2.5,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(6,-5,3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(13,-5,3,0,Math.PI*2); ctx.fill();
       ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(8,3,5,0,Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(10,4,6,0,Math.PI); ctx.stroke();
     }
 
     // weapon (still points at aim direction)
