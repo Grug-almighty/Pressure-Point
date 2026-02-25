@@ -1591,23 +1591,7 @@ function drawHUD(){
 
   // weapon + ammo
   const w = getWeaponFor(p);
-  panel(12, H-56, 220, 42, palette.uiLight, palette.outline, 12);
-  ctx.fillStyle = palette.text;
-  ctx.fillText(`${w.name}`, 24, H-32);
-  if(w.elemental){ ctx.fillText(`Element: ${w.elemental}`, 120, H-32); }
-  if(!w.melee){
-    const magMax = Math.max(1, (w.mag||0) + p.magBonus);
-    const ammoBarW = 120;
-    const ammoX = 24;
-    const ammoY = H-20;
-    ctx.fillStyle = palette.uiMid;
-    roundRect(ammoX, ammoY, ammoBarW, 6, 3); ctx.fill();
-    const ammoGrad = ctx.createLinearGradient(ammoX, ammoY, ammoX+ammoBarW, ammoY);
-    ammoGrad.addColorStop(0, palette.uiAccent);
-    ammoGrad.addColorStop(1, palette.uiGreen);
-    ctx.fillStyle = ammoGrad;
-    roundRect(ammoX, ammoY, ammoBarW * (p.ammoInMag / magMax), 6, 3); ctx.fill();
-  }
+  // weapon HUD is drawn as inventory panel near bottom left (see below)
   // dash meter
   const dashPanelY = H-104;
   panel(12, dashPanelY, 160, 36, palette.uiLight, palette.outline, 10, {shadow:false});
@@ -1625,6 +1609,60 @@ function drawHUD(){
   if(dashReady >= 0.999){
     ctx.fillStyle = palette.uiGreen;
     ctx.fillText('READY', dashBarX - 2, dashPanelY + 30);
+  }
+
+  // weapons inventory (bottom left)
+  const inv = p.ownedWeapons.filter(Boolean);
+  const activeW = getWeaponFor(p);
+  const shown = inv.length ? inv : [activeW];
+  const slotW = 54;
+  const slotH = 46;
+  const weapPanelW = Math.min(W - 24, 24 + shown.length * (slotW + 8));
+  const weapPanelH = 68;
+  const weapPanelY = H - 76;
+  panel(12, weapPanelY, weapPanelW, weapPanelH, palette.uiLight, palette.outline, 12);
+  ctx.fillStyle = palette.text;
+  ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
+  ctx.fillText(`Weapon: ${activeW.name}`, 24, weapPanelY + 22);
+  const slotsY = weapPanelY + 28;
+  let sx = 24;
+  for(let i=0;i<shown.length;i++){
+    const wi = shown[i];
+    const selected = inv.length ? (inv[p.weaponIndex] === wi) : true;
+    const fill = selected ? palette.uiMid : shade(palette.uiMid, -10);
+    panel(sx, slotsY, slotW, slotH, fill, palette.outline, 12, {shadow:false, highlight:selected});
+    if(selected){
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = 'rgba(72,224,194,0.18)';
+      roundRect(sx+4, slotsY+4, slotW-8, slotH-8, 10);
+      ctx.fill();
+      ctx.restore();
+    }
+    drawWeaponIcon(wi, sx+10, slotsY+6);
+    ctx.fillStyle = palette.text;
+    ctx.font = 'bold 11px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText(String(i+1), sx+8, slotsY+16);
+    sx += slotW + 8;
+    if(sx + slotW > 12 + weapPanelW - 10) break;
+  }
+
+  // ammo bar for active weapon
+  if(!activeW.melee){
+    const magMax = Math.max(1, (activeW.mag||0) + p.magBonus);
+    const ammoBarW = Math.min(220, weapPanelW - 90);
+    const ammoX = 24 + Math.min(140, Math.max(80, weapPanelW - ammoBarW - 34));
+    const ammoY = weapPanelY + 18;
+    ctx.fillStyle = palette.uiMid;
+    roundRect(ammoX, ammoY, ammoBarW, 8, 4); ctx.fill();
+    const ammoGrad = ctx.createLinearGradient(ammoX, ammoY, ammoX+ammoBarW, ammoY);
+    ammoGrad.addColorStop(0, palette.uiAccent);
+    ammoGrad.addColorStop(1, palette.uiGreen);
+    ctx.fillStyle = ammoGrad;
+    roundRect(ammoX, ammoY, ammoBarW * (p.ammoInMag / magMax), 8, 4); ctx.fill();
+    ctx.fillStyle = palette.text;
+    ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText(`${p.ammoInMag}/${magMax}`, ammoX + ammoBarW + 10, ammoY + 8);
   }
 
   // audio mute indicator

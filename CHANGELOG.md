@@ -13,6 +13,9 @@
 ## v0.55 ALPHA — 2026-02-14
 - Added a proper pause menu with stats and buttons.
 
+## v0.56 ALPHA — 2026-02-14
+- Weapon HUD now shows all weapons in inventory.
+
 ## v0.51 ALPHA — 2026-02-14
 - Enlarged player character sprite.
 

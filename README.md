@@ -1,9 +1,9 @@
-# Brotato-lite (Expanded) — v0.55 ALPHA
+# Brotato-lite (Expanded) — v0.56 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.55)
-- Added a proper pause menu with stats and buttons.
+## Latest Update (v0.56)
+- Weapon HUD now shows all weapons in inventory.
 - Added optional Debug HUD (FPS + entity counts).
 - Enlarged player character sprite again.
 - Enlarged trees (bigger hitbox + more HP).
