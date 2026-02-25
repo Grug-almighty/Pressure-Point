@@ -19,6 +19,9 @@
 ## v0.57 ALPHA — 2026-02-14
 - Integrated `Map.png` as a background layer (respects Background FX / presets).
 
+## v0.58 ALPHA — 2026-02-14
+- Fixed a menu overlay edge-case that could block movement.
+
 ## v0.51 ALPHA — 2026-02-14
 - Enlarged player character sprite.
 

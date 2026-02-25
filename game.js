@@ -1030,6 +1030,11 @@ canvas.addEventListener('click', (e)=>{
 
 // Core update loop
 function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover') return;
+  // Safety: menus should never block gameplay movement.
+  if(state.phase !== 'menu'){
+    if(menuEl && menuEl.style.display !== 'none') menuEl.style.display = 'none';
+    if(settingsPanel && settingsPanel.style.display !== 'none') settingsPanel.style.display = 'none';
+  }
   if(menuEl && menuEl.style.display !== 'none') return;
   if(settingsPanel && settingsPanel.style.display !== 'none') return;
   state.animTime += dt;
