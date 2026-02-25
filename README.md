@@ -1,8 +1,9 @@
-# Brotato-lite (Expanded) — v0.50 ALPHA
+# Brotato-lite (Expanded) — v0.51 ALPHA
 
 A polished, local Brotato-inspired top-down arena shooter built with HTML5 Canvas and JavaScript.
 
-## Latest Update (v0.50)
+## Latest Update (v0.51)
+- Enlarged player character sprite.
 - Swapped UI to a deep teal/blue neon scheme for menus and settings.
 - Integrated new weapon sprite models (`Shotgun`, `Pulse Rifle`, `RPG`, `Titan Cannon`, `Minigun`).
 - Auto-target now falls back to trees when no enemies are present.

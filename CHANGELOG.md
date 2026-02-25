@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.51 ALPHA — 2026-02-14
+- Enlarged player character sprite.
+
 ## v0.50 ALPHA — 2026-02-14
 - Swapped to a teal/blue neon menu color scheme.
 - Integrated new weapon sprite models for `Minigun`, `Pulse Rifle`, `RPG`, `Shotgun`, and `Titan Cannon`.
