@@ -337,6 +337,7 @@ function createPlayer(x,y){ return {
   currency:0, id: Math.random().toString(36).slice(2,8), hitFlash:0,
   items: [], dead: false, pierceBonus:0,
   dashTimer:0, dashCooldown:0, dashDir:0, iFrames:0,
+  lastMoveX: 0, lastMoveY: 1,
   classId: 'ironheart', className: 'Ironheart',
 }; }
 const players = [ createPlayer(W/2, H/2) ];
@@ -1001,7 +1002,11 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     if(idx===0 && settings.mouseAim){ p.angle = Math.atan2(input.my - p.y, input.mx - p.x); }
     else { if(input.keys['arrowup']) dy-=1; if(input.keys['arrowdown']) dy+=1; if(input.keys['arrowleft']) dx-=1; if(input.keys['arrowright']) dx+=1; }
     if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
-    if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
+    if(dx||dy){
+      const len = Math.hypot(dx,dy);
+      dx/=len; dy/=len;
+      p.lastMoveX = dx; p.lastMoveY = dy;
+    }
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
     if(p.iFrames > 0) p.iFrames -= dt;
     const dashInput = input.keys['shift'] && state.phase === 'wave';
@@ -1410,24 +1415,34 @@ function drawPlayers(){
     ctx.save();
     const bob = Math.sin(state.animTime * 6 + i) * 1.6;
     ctx.translate(p.x, p.y + bob);
-    ctx.rotate(p.angle);
+    // Do not rotate the sprite. Use movement direction to choose the frame.
 
     // ground shadow
-    ctx.save();
-    ctx.rotate(-p.angle);
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(0, 16, 16, 6, 0, 0, Math.PI*2);
     ctx.fill();
-    ctx.restore();
 
-    // player sprite based on aim angle
-    const facing = Math.abs(Math.sin(p.angle)) > 0.5 ? 'side' : (Math.cos(p.angle) > 0 ? 'up' : 'down');
+    // player sprite based on movement direction (remember last move when idle)
+    let facing = 'down';
+    if(Math.abs(p.lastMoveY) >= Math.abs(p.lastMoveX)){
+      facing = (p.lastMoveY < 0) ? 'up' : 'down';
+    } else {
+      facing = 'side';
+    }
     const playerImg = playerImages[facing];
     if(playerImg && playerImg.complete && playerImg.naturalWidth){
       const scale = 34 / playerImg.naturalWidth;
       const h = playerImg.naturalHeight * scale;
-      ctx.drawImage(playerImg, -16, -h/2, 34, h);
+      // Mirror side sprite when moving left.
+      if(facing === 'side' && p.lastMoveX < 0){
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(playerImg, -18, -h/2, 34, h);
+        ctx.restore();
+      } else {
+        ctx.drawImage(playerImg, -16, -h/2, 34, h);
+      }
     } else {
       // fallback vector body
       ctx.fillStyle = palette.outline;
@@ -1441,10 +1456,11 @@ function drawPlayers(){
       ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
     }
 
-    // weapon
+    // weapon (still points at aim direction)
     const w = getWeaponFor(p);
     const weaponImg = weaponImages[w.id];
     ctx.save();
+    ctx.rotate(p.angle);
     ctx.translate(10 + p.kick*30, 0);
     if(weaponImg && weaponImg.complete && weaponImg.naturalWidth){
       const scale = 22 / weaponImg.naturalWidth;
