@@ -103,6 +103,9 @@ function loadEnemyImages(){
 const treeImage = new Image();
 treeImage.src = 'Tree.png';
 
+const mapImage = new Image();
+mapImage.src = 'Map.png';
+
 const bgDots = Array.from({length: 90}, () => ({
   x: Math.random(),
   y: Math.random(),
@@ -1355,7 +1358,20 @@ function drawBackground(){
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,W,H);
 
-  if(settings.graphics === 'low'){
+  // map backdrop (only when background FX are enabled)
+  if(settings.bgFx && mapImage.complete && mapImage.naturalWidth){
+    ctx.save();
+    ctx.globalAlpha = settings.graphics === 'high' ? 0.22 : 0.16;
+    const scale = Math.max(W / mapImage.naturalWidth, H / mapImage.naturalHeight);
+    const dw = mapImage.naturalWidth * scale;
+    const dh = mapImage.naturalHeight * scale;
+    const dx = (W - dw) / 2;
+    const dy = (H - dh) / 2;
+    ctx.drawImage(mapImage, dx, dy, dw, dh);
+    ctx.restore();
+  }
+
+  if(settings.graphics === 'low' || !settings.bgFx){
     const vig = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.max(W,H)*0.7);
     vig.addColorStop(0,'rgba(0,0,0,0)');
     vig.addColorStop(1,'rgba(0,0,0,0.7)');

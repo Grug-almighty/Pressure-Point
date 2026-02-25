@@ -16,6 +16,9 @@
 ## v0.56 ALPHA — 2026-02-14
 - Weapon HUD now shows all weapons in inventory.
 
+## v0.57 ALPHA — 2026-02-14
+- Integrated `Map.png` as a background layer (respects Background FX / presets).
+
 ## v0.51 ALPHA — 2026-02-14
 - Enlarged player character sprite.
 
