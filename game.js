@@ -20,6 +20,7 @@ const settingsCloseBtn = document.getElementById('settingsCloseBtn');
 const settingsCloseIcon = document.getElementById('settingsCloseIcon');
 const bgEffectsToggle = document.getElementById('bgEffectsToggle');
 const particleEffectsToggle = document.getElementById('particleEffectsToggle');
+const debugHudToggle = document.getElementById('debugHudToggle');
 const customGfxRow = document.getElementById('customGfxRow');
 const msgEl = document.getElementById('msg');
 const pauseBtn = document.getElementById('pauseBtn');
@@ -117,6 +118,14 @@ const MAX_BULLETS = 320;
 
 const floatingTexts = [];
 const camera = {shake:0, x:0, y:0};
+
+const debug = {
+  fps: 0,
+  fpsAlpha: 0,
+  lastFpsT: 0,
+  frameCount: 0,
+  warn: '',
+};
 
 function roundRect(x, y, w, h, r){
   const rr = Math.min(r, w/2, h/2);
@@ -268,7 +277,7 @@ const state = {
 
 // settings
 const SETTINGS_KEY = 'brotato_settings_v1';
-const settings = { screenShake: true, graphics: 'high', autoShoot: true, mouseAim: true, bgFx: true, particleFx: true };
+const settings = { screenShake: true, graphics: 'high', autoShoot: true, mouseAim: true, bgFx: true, particleFx: true, debugHud: false };
 try{
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
   if(typeof savedSettings.screenShake === 'boolean') settings.screenShake = savedSettings.screenShake;
@@ -277,6 +286,7 @@ try{
   if(typeof savedSettings.mouseAim === 'boolean') settings.mouseAim = savedSettings.mouseAim;
   if(typeof savedSettings.bgFx === 'boolean') settings.bgFx = savedSettings.bgFx;
   if(typeof savedSettings.particleFx === 'boolean') settings.particleFx = savedSettings.particleFx;
+  if(typeof savedSettings.debugHud === 'boolean') settings.debugHud = savedSettings.debugHud;
 }catch(e){}
 
 function saveSettings(){
@@ -321,6 +331,10 @@ if(bgEffectsToggle){
 if(particleEffectsToggle){
   particleEffectsToggle.checked = settings.particleFx;
   particleEffectsToggle.addEventListener('change', ()=>{ settings.particleFx = !!particleEffectsToggle.checked; settings.graphics = 'custom'; if(gfxPreset) gfxPreset.value='custom'; if(customGfxRow) customGfxRow.style.display='flex'; saveSettings(); });
+}
+if(debugHudToggle){
+  debugHudToggle.checked = settings.debugHud;
+  debugHudToggle.addEventListener('change', ()=>{ settings.debugHud = !!debugHudToggle.checked; settings.graphics = 'custom'; if(gfxPreset) gfxPreset.value='custom'; if(customGfxRow) customGfxRow.style.display='flex'; saveSettings(); });
 }
 
 // load/unlock persistence
@@ -982,8 +996,17 @@ canvas.addEventListener('click', (e)=>{
 // Core update loop
 function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover') return;
   if(menuEl && menuEl.style.display !== 'none') return;
+  if(settingsPanel && settingsPanel.style.display !== 'none') return;
   state.animTime += dt;
   updateCamera(dt);
+  if(settings.debugHud){
+    debug.frameCount++;
+    if(t - debug.lastFpsT >= 0.5){
+      debug.fps = Math.round((debug.frameCount / (t - debug.lastFpsT)) * 10) / 10;
+      debug.frameCount = 0;
+      debug.lastFpsT = t;
+    }
+  }
   if(state.waveBanner > 0) state.waveBanner = Math.max(0, state.waveBanner - dt);
   if(input.keys['p']){
     input.keys['p'] = false;
@@ -1959,6 +1982,18 @@ function draw(){
   drawPlayers();
   ctx.restore();
   drawHUD();
+  if(settings.debugHud){
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    panel(W-240, 12, 228, 92, palette.uiLight, palette.outline, 12, {shadow:false});
+    ctx.fillStyle = palette.text;
+    ctx.font = '12px "Trebuchet MS", system-ui, sans-serif';
+    ctx.fillText(`FPS: ${debug.fps || '…'}`, W-228, 36);
+    ctx.fillText(`Enemies: ${enemies.length}  Bullets: ${bullets.length}`, W-228, 54);
+    ctx.fillText(`Particles: ${particles.length}  Money: ${moneyDrops.length}`, W-228, 72);
+    ctx.fillText(`Trees: ${trees.length}  Fruits: ${fruits.length}`, W-228, 90);
+    ctx.restore();
+  }
   drawWaveBanner();
   drawUpgradeSelector();
   drawShop();
