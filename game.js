@@ -1423,11 +1423,11 @@ function drawPlayers(){
 
     // player sprite based on aim angle
     const facing = Math.abs(Math.sin(p.angle)) > 0.5 ? 'side' : (Math.cos(p.angle) > 0 ? 'up' : 'down');
-    const img = playerImages[facing];
-    if(img && img.complete && img.naturalWidth){
-      const scale = 34 / img.naturalWidth;
-      const h = img.naturalHeight * scale;
-      ctx.drawImage(img, -16, -h/2, 34, h);
+    const playerImg = playerImages[facing];
+    if(playerImg && playerImg.complete && playerImg.naturalWidth){
+      const scale = 34 / playerImg.naturalWidth;
+      const h = playerImg.naturalHeight * scale;
+      ctx.drawImage(playerImg, -16, -h/2, 34, h);
     } else {
       // fallback vector body
       ctx.fillStyle = palette.outline;
@@ -1443,13 +1443,13 @@ function drawPlayers(){
 
     // weapon
     const w = getWeaponFor(p);
-    const img = weaponImages[w.id];
+    const weaponImg = weaponImages[w.id];
     ctx.save();
     ctx.translate(10 + p.kick*30, 0);
-    if(img && img.complete && img.naturalWidth){
-      const scale = 22 / img.naturalWidth;
-      const h = img.naturalHeight * scale;
-      ctx.drawImage(img, -2, -h/2, 22, h);
+    if(weaponImg && weaponImg.complete && weaponImg.naturalWidth){
+      const scale = 22 / weaponImg.naturalWidth;
+      const h = weaponImg.naturalHeight * scale;
+      ctx.drawImage(weaponImg, -2, -h/2, 22, h);
     } else {
       ctx.fillStyle = w.color;
       roundRect(2,-3,14,6,2); ctx.fill();
