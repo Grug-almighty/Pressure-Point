@@ -985,9 +985,19 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   // players movement
   for(let idx=0; idx<players.length; idx++){
     const p = players[idx]; if(p.dead) continue; let dx=0, dy=0;
-    if(idx===0){ if(input.keys['w']||input.keys['arrowup']) dy-=1; if(input.keys['s']||input.keys['arrowdown']) dy+=1; if(input.keys['a']||input.keys['arrowleft']) dx-=1; if(input.keys['d']||input.keys['arrowright']) dx+=1; }
+    if(idx===0){ 
+      if(input.keys['w']) dy-=1; 
+      if(input.keys['s']) dy+=1; 
+      if(input.keys['a']) dx-=1; 
+      if(input.keys['d']) dx+=1; 
+    }
+    if(idx===1){ 
+      if(input.keys['arrowup']) dy-=1; 
+      if(input.keys['arrowdown']) dy+=1; 
+      if(input.keys['arrowleft']) dx-=1; 
+      if(input.keys['arrowright']) dx+=1; 
+    }
     if(idx===0 && settings.mouseAim){ p.angle = Math.atan2(input.my - p.y, input.mx - p.x); }
-    else { if(input.keys['arrowup']) dy-=1; if(input.keys['arrowdown']) dy+=1; if(input.keys['arrowleft']) dx-=1; if(input.keys['arrowright']) dx+=1; }
     if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
     if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
@@ -1109,8 +1119,10 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   }
 
   // enemies
-  for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; // choose nearest player to chase
-    let target = players[0]; let bd = (e.x-players[0].x)**2 + (e.y-players[0].y)**2; for(const p of players){ const d=(e.x-p.x)**2 + (e.y-p.y)**2; if(d<bd){ bd=d; target=p; } }
+  for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; // choose nearest alive player to chase
+    const alivePlayers = players.filter(p=>!p.dead);
+    if(alivePlayers.length === 0) continue;
+    let target = alivePlayers[0]; let bd = (e.x-alivePlayers[0].x)**2 + (e.y-alivePlayers[0].y)**2; for(const p of alivePlayers){ const d=(e.x-p.x)**2 + (e.y-p.y)**2; if(d<bd){ bd=d; target=p; } }
     // apply status effects
     if(!e.status) e.status = {burn:0,burnDps:0,slow:0,shock:0};
     if(e.status.burn > 0){
@@ -1394,7 +1406,7 @@ function drawPlayers(){
   for(let i=0;i<players.length;i++){
     const p = players[i];
     if(p.dead) continue;
-    const body = i===0 ? '#e6c07b' : '#ffd16a';
+    const body = i===0 ? '#4a9eff' : '#ff6b6b';
     ctx.save();
     const bob = Math.sin(state.animTime * 6 + i) * 1.6;
     ctx.translate(p.x, p.y + bob);
@@ -1976,10 +1988,15 @@ function resetRun(){
   particles.length = 0;
   trees.length = 0;
   fruits.length = 0;
+  floatingTexts.length = 0;
   state.wave = 1;
+  state.waveSpawned = 0;
   state.waveCompleteTimer = 0;
+  state.bossSpawned = false;
   state.phase = 'menu';
   state.shopView = 'shop';
+  shop.locked = [];
+  shop.rerollCost = 6;
   menuEl.style.display = 'block';
   restartBtn.style.display = 'none';
   renderDangerButtons();
