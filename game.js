@@ -326,6 +326,7 @@ function createPlayer(x,y){ return {
   items: [], dead: false, pierceBonus:0,
   dashTimer:0, dashCooldown:0, dashDir:0, iFrames:0,
   classId: 'ironheart', className: 'Ironheart',
+  lastHitTime:0, hitCooldown:0.5,
 }; }
 const players = [ createPlayer(W/2, H/2) ];
 let player = players[0];
@@ -353,7 +354,7 @@ const weapons = [
   {id:'shotgun', name:'Grav Shotgun', type:'shotgun', rarity:'rare', fireRate:0.6, bulletSpeed:520, spread:0.5, damage:10, pellets:7, mag:6, reload:1.8, recoil:1.4, color:'#ffd166'},
   {id:'heavy', name:'Titan Cannon', type:'heavy', rarity:'red', fireRate:0.9, bulletSpeed:520, spread:0.08, damage:34, mag:4, reload:2.3, recoil:1.8, color:'#ff7b7b', explosive:true, elemental:'fire'},
   {id:'blade', name:'Arc Blade', type:'melee', rarity:'rare', fireRate:0.5, bulletSpeed:420, spread:0.0, damage:22, mag:999, reload:0.2, recoil:0.6, color:'#7bdff2', melee:true},
-  {id:'smg', name:'Viper SMG', type:'rifle', rarity:'common', fireRate:0.08, bulletSpeed:720, spread:0.06, damage:7, mag:40, reload:1.2, recoil:0.9, color:'#7CFF6B'},
+  {id:'smg', name:'Viper SMG', type:'rifle', rarity:'common', fireRate:0.08, bulletSpeed:720, spread:0.06, damage:9, mag:40, reload:1.2, recoil:0.9, color:'#7CFF6B'},
   {id:'dmr', name:'Longshot DMR', type:'rifle', rarity:'rare', fireRate:0.28, bulletSpeed:980, spread:0.01, damage:26, mag:8, reload:1.6, recoil:1.2, color:'#6aaeff'},
   {id:'flame', name:'Flamethrower', type:'special', rarity:'epic', fireRate:0.05, bulletSpeed:420, spread:0.25, damage:6, mag:80, reload:2.0, recoil:0.7, color:'#ff8c42', elemental:'fire'},
   {id:'rpg', name:'RPG-7', type:'heavy', rarity:'epic', fireRate:1.2, bulletSpeed:460, spread:0.08, damage:60, mag:1, reload:2.6, recoil:2.0, color:'#ff5d5d', explosive:true, elemental:'fire'},
