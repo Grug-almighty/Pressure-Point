@@ -87,6 +87,21 @@ function loadEnemyImages(){
   enemyImages.light = img;
 }
 
+const playerImages = {};
+function loadPlayerImages(){
+  const down = new Image();
+  down.src = 'PlayerDown.png';
+  playerImages.down = down;
+  
+  const up = new Image();
+  up.src = 'PlayerUp.png';
+  playerImages.up = up;
+  
+  const side = new Image();
+  side.src = 'PlayerSide.png';
+  playerImages.side = side;
+}
+
 const treeImage = new Image();
 treeImage.src = 'Tree.png';
 
@@ -1398,31 +1413,77 @@ function drawPlayers(){
     ctx.save();
     const bob = Math.sin(state.animTime * 6 + i) * 1.6;
     ctx.translate(p.x, p.y + bob);
-    ctx.rotate(p.angle);
 
     // ground shadow
     ctx.save();
-    ctx.rotate(-p.angle);
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(0, 16, 16, 6, 0, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
 
-    // outline
-    ctx.fillStyle = palette.outline;
-    ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
-    // body
-    ctx.fillStyle = body;
-    ctx.beginPath(); ctx.ellipse(0,0,16,12,0,0,Math.PI*2); ctx.fill();
-    // face
-    ctx.fillStyle = '#2b1e10';
-    ctx.beginPath(); ctx.arc(4,-3,2,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(9,-3,2,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
+    // Determine which sprite to use based on angle
+    // Normalize angle to 0-2π range
+    let normalizedAngle = p.angle % (Math.PI * 2);
+    if (normalizedAngle < 0) normalizedAngle += Math.PI * 2;
+    
+    let spriteImg = null;
+    let flipX = false;
+    
+    // Determine sprite based on angle (8 directions)
+    // Right: -π/4 to π/4
+    // Down: π/4 to 3π/4
+    // Left: 3π/4 to 5π/4
+    // Up: 5π/4 to 7π/4
+    
+    if (normalizedAngle >= Math.PI * 7/4 || normalizedAngle < Math.PI * 1/4) {
+      // Facing right - use side sprite
+      spriteImg = playerImages.side;
+      flipX = false;
+    } else if (normalizedAngle >= Math.PI * 1/4 && normalizedAngle < Math.PI * 3/4) {
+      // Facing down
+      spriteImg = playerImages.down;
+    } else if (normalizedAngle >= Math.PI * 3/4 && normalizedAngle < Math.PI * 5/4) {
+      // Facing left - use side sprite flipped
+      spriteImg = playerImages.side;
+      flipX = true;
+    } else {
+      // Facing up
+      spriteImg = playerImages.up;
+    }
+
+    // Draw player sprite if loaded, otherwise fallback to original drawing
+    if(spriteImg && spriteImg.complete && spriteImg.naturalWidth){
+      ctx.save();
+      if(flipX){
+        ctx.scale(-1, 1);
+      }
+      // Draw sprite centered, scaled to approximately 32x32 pixels
+      const spriteSize = 32;
+      ctx.drawImage(spriteImg, -spriteSize/2, -spriteSize/2, spriteSize, spriteSize);
+      ctx.restore();
+    } else {
+      // Fallback to original ellipse drawing
+      ctx.save();
+      ctx.rotate(p.angle);
+      // outline
+      ctx.fillStyle = palette.outline;
+      ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
+      // body
+      ctx.fillStyle = body;
+      ctx.beginPath(); ctx.ellipse(0,0,16,12,0,0,Math.PI*2); ctx.fill();
+      // face
+      ctx.fillStyle = '#2b1e10';
+      ctx.beginPath(); ctx.arc(4,-3,2,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(9,-3,2,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
+      ctx.restore();
+    }
 
     // weapon
+    ctx.save();
+    ctx.rotate(p.angle);
     const w = getWeaponFor(p);
     const img = weaponImages[w.id];
     ctx.save();
@@ -1437,8 +1498,8 @@ function drawPlayers(){
       ctx.strokeStyle = palette.outline; ctx.lineWidth = 2; ctx.stroke();
     }
     ctx.restore();
-
     ctx.restore();
+
     ctx.restore();
   }
 }
@@ -1967,6 +2028,7 @@ function showMenu(){ menuEl.style.display = 'block'; if(pauseBtn) pauseBtn.style
 showMenu();
 loadWeaponImages();
 loadEnemyImages();
+  loadPlayerImages();
 requestAnimationFrame(loop);
 
 function resetRun(){
