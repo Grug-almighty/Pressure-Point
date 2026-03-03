@@ -87,8 +87,26 @@ function loadEnemyImages(){
   enemyImages.light = img;
 }
 
+const playerImages = {};
+function loadPlayerImages(){
+  const up = new Image();
+  up.src = 'PlayerUp.png';
+  playerImages.up = up;
+  
+  const down = new Image();
+  down.src = 'PlayerDown.png';
+  playerImages.down = down;
+  
+  const side = new Image();
+  side.src = 'PlayerSide.png';
+  playerImages.side = side;
+}
+
 const treeImage = new Image();
 treeImage.src = 'Tree.png';
+
+const mapImage = new Image();
+mapImage.src = 'Map.png';
 
 const bgDots = Array.from({length: 90}, () => ({
   x: Math.random(),
@@ -987,12 +1005,12 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
     const p = players[idx]; if(p.dead) continue; let dx=0, dy=0;
     if(idx===0){ if(input.keys['w']||input.keys['arrowup']) dy-=1; if(input.keys['s']||input.keys['arrowdown']) dy+=1; if(input.keys['a']||input.keys['arrowleft']) dx-=1; if(input.keys['d']||input.keys['arrowright']) dx+=1; }
     if(idx===0 && settings.mouseAim){ p.angle = Math.atan2(input.my - p.y, input.mx - p.x); }
-    else { if(input.keys['arrowup']) dy-=1; if(input.keys['arrowdown']) dy+=1; if(input.keys['arrowleft']) dx-=1; if(input.keys['arrowright']) dx+=1; }
+    if(idx===1){ if(input.keys['i']) dy-=1; if(input.keys['k']) dy+=1; if(input.keys['j']) dx-=1; if(input.keys['l']) dx+=1; }
     if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
     if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
     if(p.iFrames > 0) p.iFrames -= dt;
-    const dashInput = input.keys['shift'] && state.phase === 'wave';
+    const dashInput = (idx===0 && input.keys['shift']) || (idx===1 && input.keys['u']);
     if(dashInput && p.dashCooldown <= 0){
       const dir = (dx||dy) ? Math.atan2(dy, dx) : p.angle;
       p.dashDir = dir;
@@ -1001,7 +1019,7 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       p.iFrames = 0.28;
       addShake(4);
       audio.dash();
-      input.keys['shift'] = false;
+      input.keys[idx===0 ? 'shift' : 'u'] = false;
       for(let k=0;k<6;k++){
       addParticle({x:p.x + rand(-6,6), y:p.y + rand(-6,6), life:0.25, r:8 - k*0.6, color: palette.uiBlue});
       }
@@ -1276,6 +1294,19 @@ function drawBackground(){
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,W,H);
 
+  // Draw map sprite if available
+  if(mapImage && mapImage.complete && mapImage.naturalWidth){
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    const scale = Math.max(W / mapImage.naturalWidth, H / mapImage.naturalHeight);
+    const mapW = mapImage.naturalWidth * scale;
+    const mapH = mapImage.naturalHeight * scale;
+    const mapX = (W - mapW) / 2;
+    const mapY = (H - mapH) / 2;
+    ctx.drawImage(mapImage, mapX, mapY, mapW, mapH);
+    ctx.restore();
+  }
+
   if(settings.graphics === 'low'){
     const vig = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.max(W,H)*0.7);
     vig.addColorStop(0,'rgba(0,0,0,0)');
@@ -1398,34 +1429,76 @@ function drawPlayers(){
     ctx.save();
     const bob = Math.sin(state.animTime * 6 + i) * 1.6;
     ctx.translate(p.x, p.y + bob);
-    ctx.rotate(p.angle);
 
     // ground shadow
     ctx.save();
-    ctx.rotate(-p.angle);
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(0, 16, 16, 6, 0, 0, Math.PI*2);
     ctx.fill();
     ctx.restore();
 
-    // outline
-    ctx.fillStyle = palette.outline;
-    ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
-    // body
-    ctx.fillStyle = body;
-    ctx.beginPath(); ctx.ellipse(0,0,16,12,0,0,Math.PI*2); ctx.fill();
-    // face
-    ctx.fillStyle = '#2b1e10';
-    ctx.beginPath(); ctx.arc(4,-3,2,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(9,-3,2,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
+    // Determine which sprite to use based on angle
+    let spriteImg = null;
+    let flipX = false;
+    const angle = p.angle;
+    const angleDeg = angle * 180 / Math.PI;
+    
+    // Normalize angle to 0-360
+    let normalizedAngle = angleDeg;
+    while(normalizedAngle < 0) normalizedAngle += 360;
+    while(normalizedAngle >= 360) normalizedAngle -= 360;
+    
+    // Choose sprite based on direction
+    if(normalizedAngle >= 45 && normalizedAngle < 135){
+      // Facing down
+      spriteImg = playerImages.down;
+    } else if(normalizedAngle >= 135 && normalizedAngle < 225){
+      // Facing left
+      spriteImg = playerImages.side;
+      flipX = true;
+    } else if(normalizedAngle >= 225 && normalizedAngle < 315){
+      // Facing up
+      spriteImg = playerImages.up;
+    } else {
+      // Facing right
+      spriteImg = playerImages.side;
+      flipX = false;
+    }
+
+    // Draw player sprite or fallback to ellipse
+    if(spriteImg && spriteImg.complete && spriteImg.naturalWidth){
+      ctx.save();
+      if(flipX){
+        ctx.scale(-1, 1);
+      }
+      const spriteSize = 32;
+      ctx.drawImage(spriteImg, flipX ? -spriteSize/2 : -spriteSize/2, -spriteSize/2, spriteSize, spriteSize);
+      ctx.restore();
+    } else {
+      // Fallback to original ellipse rendering
+      ctx.save();
+      ctx.rotate(angle);
+      // outline
+      ctx.fillStyle = palette.outline;
+      ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
+      // body
+      ctx.fillStyle = body;
+      ctx.beginPath(); ctx.ellipse(0,0,16,12,0,0,Math.PI*2); ctx.fill();
+      // face
+      ctx.fillStyle = '#2b1e10';
+      ctx.beginPath(); ctx.arc(4,-3,2,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(9,-3,2,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#2b1e10'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(6,2,4,0,Math.PI); ctx.stroke();
+      ctx.restore();
+    }
 
     // weapon
     const w = getWeaponFor(p);
     const img = weaponImages[w.id];
     ctx.save();
+    ctx.rotate(angle);
     ctx.translate(10 + p.kick*30, 0);
     if(img && img.complete && img.naturalWidth){
       const scale = 22 / img.naturalWidth;
@@ -1438,7 +1511,6 @@ function drawPlayers(){
     }
     ctx.restore();
 
-    ctx.restore();
     ctx.restore();
   }
 }
@@ -1967,6 +2039,7 @@ function showMenu(){ menuEl.style.display = 'block'; if(pauseBtn) pauseBtn.style
 showMenu();
 loadWeaponImages();
 loadEnemyImages();
+  loadPlayerImages();
 requestAnimationFrame(loop);
 
 function resetRun(){
