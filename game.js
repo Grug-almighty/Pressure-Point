@@ -341,6 +341,7 @@ function createPlayer(x,y){ return {
   items: [], dead: false, pierceBonus:0,
   dashTimer:0, dashCooldown:0, dashDir:0, iFrames:0,
   classId: 'ironheart', className: 'Ironheart',
+  lastHitTime:0, hitCooldown:0.5,
 }; }
 const players = [ createPlayer(W/2, H/2) ];
 let player = players[0];
@@ -368,7 +369,7 @@ const weapons = [
   {id:'shotgun', name:'Grav Shotgun', type:'shotgun', rarity:'rare', fireRate:0.6, bulletSpeed:520, spread:0.5, damage:10, pellets:7, mag:6, reload:1.8, recoil:1.4, color:'#ffd166'},
   {id:'heavy', name:'Titan Cannon', type:'heavy', rarity:'red', fireRate:0.9, bulletSpeed:520, spread:0.08, damage:34, mag:4, reload:2.3, recoil:1.8, color:'#ff7b7b', explosive:true, elemental:'fire'},
   {id:'blade', name:'Arc Blade', type:'melee', rarity:'rare', fireRate:0.5, bulletSpeed:420, spread:0.0, damage:22, mag:999, reload:0.2, recoil:0.6, color:'#7bdff2', melee:true},
-  {id:'smg', name:'Viper SMG', type:'rifle', rarity:'common', fireRate:0.08, bulletSpeed:720, spread:0.06, damage:7, mag:40, reload:1.2, recoil:0.9, color:'#7CFF6B'},
+  {id:'smg', name:'Viper SMG', type:'rifle', rarity:'common', fireRate:0.08, bulletSpeed:720, spread:0.06, damage:9, mag:40, reload:1.2, recoil:0.9, color:'#7CFF6B'},
   {id:'dmr', name:'Longshot DMR', type:'rifle', rarity:'rare', fireRate:0.28, bulletSpeed:980, spread:0.01, damage:26, mag:8, reload:1.6, recoil:1.2, color:'#6aaeff'},
   {id:'flame', name:'Flamethrower', type:'special', rarity:'epic', fireRate:0.05, bulletSpeed:420, spread:0.25, damage:6, mag:80, reload:2.0, recoil:0.7, color:'#ff8c42', elemental:'fire'},
   {id:'rpg', name:'RPG-7', type:'heavy', rarity:'epic', fireRate:1.2, bulletSpeed:460, spread:0.08, damage:60, mag:1, reload:2.6, recoil:2.0, color:'#ff5d5d', explosive:true, elemental:'fire'},
@@ -1000,9 +1001,19 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   // players movement
   for(let idx=0; idx<players.length; idx++){
     const p = players[idx]; if(p.dead) continue; let dx=0, dy=0;
-    if(idx===0){ if(input.keys['w']||input.keys['arrowup']) dy-=1; if(input.keys['s']||input.keys['arrowdown']) dy+=1; if(input.keys['a']||input.keys['arrowleft']) dx-=1; if(input.keys['d']||input.keys['arrowright']) dx+=1; }
+    if(idx===0){ 
+      if(input.keys['w']) dy-=1; 
+      if(input.keys['s']) dy+=1; 
+      if(input.keys['a']) dx-=1; 
+      if(input.keys['d']) dx+=1; 
+    }
+    if(idx===1){ 
+      if(input.keys['arrowup']) dy-=1; 
+      if(input.keys['arrowdown']) dy+=1; 
+      if(input.keys['arrowleft']) dx-=1; 
+      if(input.keys['arrowright']) dx+=1; 
+    }
     if(idx===0 && settings.mouseAim){ p.angle = Math.atan2(input.my - p.y, input.mx - p.x); }
-    else { if(input.keys['arrowup']) dy-=1; if(input.keys['arrowdown']) dy+=1; if(input.keys['arrowleft']) dx-=1; if(input.keys['arrowright']) dx+=1; }
     if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
     if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
@@ -1124,8 +1135,10 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
   }
 
   // enemies
-  for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; // choose nearest player to chase
-    let target = players[0]; let bd = (e.x-players[0].x)**2 + (e.y-players[0].y)**2; for(const p of players){ const d=(e.x-p.x)**2 + (e.y-p.y)**2; if(d<bd){ bd=d; target=p; } }
+  for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i]; // choose nearest alive player to chase
+    const alivePlayers = players.filter(p=>!p.dead);
+    if(alivePlayers.length === 0) continue;
+    let target = alivePlayers[0]; let bd = (e.x-alivePlayers[0].x)**2 + (e.y-alivePlayers[0].y)**2; for(const p of alivePlayers){ const d=(e.x-p.x)**2 + (e.y-p.y)**2; if(d<bd){ bd=d; target=p; } }
     // apply status effects
     if(!e.status) e.status = {burn:0,burnDps:0,slow:0,shock:0};
     if(e.status.burn > 0){
@@ -1409,7 +1422,7 @@ function drawPlayers(){
   for(let i=0;i<players.length;i++){
     const p = players[i];
     if(p.dead) continue;
-    const body = i===0 ? '#e6c07b' : '#ffd16a';
+    const body = i===0 ? '#4a9eff' : '#ff6b6b';
     ctx.save();
     const bob = Math.sin(state.animTime * 6 + i) * 1.6;
     ctx.translate(p.x, p.y + bob);
@@ -2038,10 +2051,15 @@ function resetRun(){
   particles.length = 0;
   trees.length = 0;
   fruits.length = 0;
+  floatingTexts.length = 0;
   state.wave = 1;
+  state.waveSpawned = 0;
   state.waveCompleteTimer = 0;
+  state.bossSpawned = false;
   state.phase = 'menu';
   state.shopView = 'shop';
+  shop.locked = [];
+  shop.rerollCost = 6;
   menuEl.style.display = 'block';
   restartBtn.style.display = 'none';
   renderDangerButtons();
