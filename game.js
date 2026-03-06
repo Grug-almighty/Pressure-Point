@@ -844,6 +844,7 @@ function buyShopItemFor(player){
 
 // UI: build dangers
 function renderDangerButtons(){
+  if(!dangerListEl) return;
   dangerListEl.innerHTML = '';
   for(let i=1;i<=5;i++){
     const b = document.createElement('div');
@@ -866,6 +867,7 @@ function renderDangerButtons(){
 }
 
 function renderClassButtons(){
+  if(!classListEl) return;
   classListEl.innerHTML = '';
   for(const c of classes){
     const btn = document.createElement('div');
