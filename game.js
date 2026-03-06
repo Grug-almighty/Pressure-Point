@@ -1019,10 +1019,6 @@ function update(dt, t){ if(state.phase === 'menu' || state.phase === 'gameover')
       if(input.keys['arrowright']) dx+=1; 
     }
     if(idx===0 && settings.mouseAim){ p.angle = Math.atan2(input.my - p.y, input.mx - p.x); }
- codegen-bot/integrate-sprites-fix-coop-5ac959b3
-    if(idx===1){ if(input.keys['i']) dy-=1; if(input.keys['k']) dy+=1; if(input.keys['j']) dx-=1; if(input.keys['l']) dx+=1; }
-=======
- main
     if(state.phase === 'shop' || state.phase === 'upgrade'){ dx = 0; dy = 0; }
     if(dx||dy){ const len = Math.hypot(dx,dy); dx/=len; dy/=len; }
     if(p.dashCooldown > 0) p.dashCooldown -= dt;
