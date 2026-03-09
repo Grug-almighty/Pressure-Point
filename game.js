@@ -1890,7 +1890,7 @@ function drawEffects(){
     ctx.translate(e.x, e.y);
     ctx.scale(wob, wob);
     const lightImg = enemyImages.light;
-    if(e.id === 'runner' && lightImg && lightImg.complete && lightImg.naturalWidth){
+    if(e.id === 'spitter' && lightImg && lightImg.complete && lightImg.naturalWidth){
       const scale = (e.r*2) / lightImg.naturalWidth;
       const h = lightImg.naturalHeight * scale;
       ctx.drawImage(lightImg, -e.r, -h/2, e.r*2, h);
